@@ -10,9 +10,12 @@
 
 bool Application::OnInit() {
 	InitLogging();
+
 	EditorWindow * window = new EditorWindow(this);
 	window->SetPosition(wxPoint(20, 20));
 	window->Show();
+	SetTopWindow(window);
+
 	return true;
 
 }
