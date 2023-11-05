@@ -1,5 +1,5 @@
 /**
- * EditorWindow.h - Main window for Editor application.
+ * gui.h - Main window for Editor application.
  *
  * Project wxFPI: Image Editing Tools
  * (C) 2023 Léo Hardt <leom.hardt@gmail.com>.
@@ -8,6 +8,7 @@
 #define WXFPI_GUI_H
 
 #include "wx.h"
+#include "image.h"
 
 class Application : public wxApp {
 private:
@@ -27,8 +28,12 @@ private:
 	wxButton* m_btn_grey;
 	wxButton* m_btn_quant;
 
+	std::unique_ptr<Image> m_image;
+	std::unique_ptr<Image> m_original_image;
+
 	void InitMenuBar();
 	void InitControls();
+	void ShowImage();
 public:
 	EditorWindow(Application * app);
 
@@ -40,6 +45,7 @@ public:
 	void OnHorizontalButtonClicked(wxEvent& evt);
 	void OnQuantizedButtonClicked(wxEvent& evt);
 	void OnGreyButtonClicked(wxEvent & evt);
+	void OnResetButtonClicked(wxEvent& evt);
 };
 
 #endif /* WXFPI_GUI_H */

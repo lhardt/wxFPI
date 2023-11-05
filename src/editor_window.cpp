@@ -44,6 +44,9 @@ void EditorWindow::InitControls() {
 	root_sizer->Add(m_image_container, 1, wxEXPAND);
 	m_panel->SetSizer(root_sizer);
 
+	m_image_container->SetScrollRate(5, 5);
+	m_image_container->ShowScrollbars(wxSHOW_SB_DEFAULT, wxSHOW_SB_DEFAULT);
+
 	m_btn_hor->Bind(wxEVT_BUTTON, &EditorWindow::OnHorizontalButtonClicked, this);
 	m_btn_ver->Bind(wxEVT_BUTTON, &EditorWindow::OnVerticalButtonClicked, this);
 	m_btn_grey->Bind(wxEVT_BUTTON, &EditorWindow::OnGreyButtonClicked, this);
@@ -66,6 +69,11 @@ void EditorWindow::OnQuantizedButtonClicked(wxEvent& evt) {
 	wxLogInfo("Perform 'Quantize' Operation!");
 }
 
+void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
+	wxLogInfo("Perform 'Reset' Operation!");
+}
+
+
 void EditorWindow::InitMenuBar() {
 	wxMenuBar* menu_bar = new wxMenuBar();
 	wxMenu* menu_file = new wxMenu();
@@ -85,6 +93,19 @@ void EditorWindow::InitMenuBar() {
 	SetMenuBar(menu_bar);
 }
 
+void EditorWindow::ShowImage() {
+	m_image_container->DestroyChildren();
+	wxStaticBitmap* image = new wxStaticBitmap(m_image_container, wxID_ANY, m_image->GetWxBitmap());
+
+	wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->AddStretchSpacer(1);
+	sizer->Add(image, 0, wxALIGN_CENTER);
+	sizer->AddStretchSpacer(1);
+	m_image_container->SetSizer(sizer);
+	m_image_container->FitInside();
+}
+
+
 void EditorWindow::OnOpenFileClicked(wxEvent&) {
 	wxLogInfo("Open new file!");
 	wxFileDialog dialog(this, wxT("Select Image"), ".\\res", "test.png", "*.png|*.jpg");
@@ -97,7 +118,9 @@ void EditorWindow::OnOpenFileClicked(wxEvent&) {
 
 	wxString filename = dialog.GetPath();
 	wxLogInfo("Chosen file: <%s>!", filename);
-	
+	m_image = std::unique_ptr<Image>(new Image(filename.ToStdString()));
+
+	ShowImage();
 }
 
 void EditorWindow::OnMenuItemClicked(wxEvent& evt) {

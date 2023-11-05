@@ -17,7 +17,6 @@ bool Application::OnInit() {
 	SetTopWindow(window);
 
 	return true;
-
 }
 
 void Application::InitLogging() {
