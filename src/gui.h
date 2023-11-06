@@ -27,7 +27,9 @@ private:
 	wxButton* m_btn_ver;
 	wxButton* m_btn_grey;
 	wxButton* m_btn_quant;
+	wxButton* m_btn_reset;
 
+	bool has_image;
 	std::unique_ptr<Image> m_image;
 	std::unique_ptr<Image> m_original_image;
 

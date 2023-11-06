@@ -6,6 +6,8 @@
  */
 #include "gui.h"
 
+static const wxString APP_TITLE = "wxFPI Image Editor";
+
 enum wxID_EditorWindow {
 	DO_NOT_USE = wxID_HIGHEST,
 
@@ -15,8 +17,9 @@ enum wxID_EditorWindow {
 	ID_MENU_ABOUT
 };
 
-EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, "wxFPI Image Editor") {
+EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, APP_TITLE) {
 	// SetBackgroundColour(wxColor("#2D2D30"));
+	has_image = false;
 	InitMenuBar();
 	InitControls();
 }
@@ -28,6 +31,7 @@ void EditorWindow::InitControls() {
 	m_btn_hor = new wxButton(m_panel, wxID_ANY, wxT("H"));
 	m_btn_ver = new wxButton(m_panel, wxID_ANY, wxT("V"));
 	m_btn_quant = new wxButton(m_panel, wxID_ANY, wxT("Q"));
+	m_btn_reset = new wxButton(m_panel, wxID_ANY, wxT("R"));
 
 	m_image_container = new wxScrolledWindow(m_panel, wxID_ANY);
 	m_image_container->SetBackgroundColour(wxColor("#2D2D30"));
@@ -39,6 +43,7 @@ void EditorWindow::InitControls() {
 	controls_sizer->Add(m_btn_ver, 0, 0);
 	controls_sizer->Add(m_btn_grey, 0, 0);
 	controls_sizer->Add(m_btn_quant, 0, 0);
+	controls_sizer->Add(m_btn_reset, 0, 0);
 
 	root_sizer->Add(controls_sizer, 0, wxEXPAND);
 	root_sizer->Add(m_image_container, 1, wxEXPAND);
@@ -51,26 +56,60 @@ void EditorWindow::InitControls() {
 	m_btn_ver->Bind(wxEVT_BUTTON, &EditorWindow::OnVerticalButtonClicked, this);
 	m_btn_grey->Bind(wxEVT_BUTTON, &EditorWindow::OnGreyButtonClicked, this);
 	m_btn_quant->Bind(wxEVT_BUTTON, &EditorWindow::OnQuantizedButtonClicked, this);
+	m_btn_reset->Bind(wxEVT_BUTTON, &EditorWindow::OnResetButtonClicked, this);
 }
 
 void EditorWindow::OnGreyButtonClicked(wxEvent & evt) {
+	if (!has_image) { 
+		wxLogInfo("Perform 'Grey' Operation with no Image!");
+		return;
+	}
 	wxLogInfo("Perform 'Grey' Operation!");
+	m_image->applyGreyTransform();
+	ShowImage();
 }
 
 void EditorWindow::OnHorizontalButtonClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Horizontal' Operation with no Image!");
+		return;
+	}
 	wxLogInfo("Perform 'Horizontal' Operation!");
+	m_image->applyHorTransform();
+	ShowImage();
 }
 
 void EditorWindow::OnVerticalButtonClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Vertical' Operation with no Image!");
+		return;
+	}
 	wxLogInfo("Perform 'Vertical' Operation!");
+	m_image->applyVerTransform();
+	ShowImage();
 }
 
 void EditorWindow::OnQuantizedButtonClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Quantize' Operation with no Image!");
+		return;
+	}
 	wxLogInfo("Perform 'Quantize' Operation!");
+	m_image->applyQuantTranform(255);
+	ShowImage();
 }
 
 void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Reset' Operation with no Image!");
+		return;
+	}
+
 	wxLogInfo("Perform 'Reset' Operation!");
+	m_image.reset(); /* unique_ptr free method */
+	m_image = std::unique_ptr<Image>(new Image(*m_original_image));
+	ShowImage();
+
 }
 
 
@@ -119,8 +158,10 @@ void EditorWindow::OnOpenFileClicked(wxEvent&) {
 	wxString filename = dialog.GetPath();
 	wxLogInfo("Chosen file: <%s>!", filename);
 	m_image = std::unique_ptr<Image>(new Image(filename.ToStdString()));
+	m_original_image = std::unique_ptr<Image>(new Image(filename.ToStdString()));
 
 	ShowImage();
+	has_image = true;
 }
 
 void EditorWindow::OnMenuItemClicked(wxEvent& evt) {
