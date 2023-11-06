@@ -8,6 +8,7 @@
 #define WXFPI_GUI_H
 
 #include "wx.h"
+
 #include "image.h"
 
 class Application : public wxApp {
@@ -28,6 +29,9 @@ private:
 	wxButton* m_btn_grey;
 	wxButton* m_btn_quant;
 	wxButton* m_btn_reset;
+	wxButton* m_btn_invert;
+
+	wxSpinCtrl* m_spin_quant;
 
 	bool has_image;
 	std::unique_ptr<Image> m_image;
@@ -41,8 +45,10 @@ public:
 
 	void OnMenuItemClicked(wxEvent & evt);
 	void OnOpenFileClicked(wxEvent& evt);
+	void OnSaveImageClicked(wxEvent& evt);
 
 	/* Transformations */
+	void OnInvertButtonClicked(wxEvent& evt);
 	void OnVerticalButtonClicked(wxEvent& evt);
 	void OnHorizontalButtonClicked(wxEvent& evt);
 	void OnQuantizedButtonClicked(wxEvent& evt);

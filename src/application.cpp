@@ -23,8 +23,8 @@ void Application::InitLogging() {
 	wxLog* logger = new wxLogStream(&std::cout);
 	wxLog::SetActiveTarget(logger);
 
-	wxLogWindow* logger_window = new wxLogWindow(NULL, wxT("Test"), false);
-	logger_window->GetFrame()->SetPosition(wxPoint(800, 20));
+	wxLogWindow* logger_window = new wxLogWindow(NULL, wxT("Logger Information"), false);
+	logger_window->GetFrame()->SetPosition(wxPoint(1200, 20));
 	logger_window->Show();
 }
 

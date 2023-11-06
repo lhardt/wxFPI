@@ -1,5 +1,7 @@
 #include "image.h"
 
+#include <bitset>
+
 Image::Image(std::string filename)  {
 	auto img = cv::imread(filename, cv::IMREAD_COLOR);
 	if (img.empty()) {
@@ -15,8 +17,13 @@ Image::Image(std::string filename)  {
 	makeWxView();
 }
 
-Image::Image(const Image& other) : matrix(other.matrix), w(other.w), h(other.h) {
+Image::Image(const Image& other) : matrix(other.matrix.size(), other.matrix.type()), w(other.w), h(other.h) {
+	other.matrix.copyTo(matrix);
 	makeWxView();
+}
+
+void Image::SaveAs(std::string filename) {
+	cv::imwrite(filename, this->matrix);
 }
 
 void Image::makeWxView() {
@@ -38,13 +45,23 @@ wxBitmap Image::GetWxBitmap() {
 	return bitmap;
 }
 
+void Image::applyInvertTransform() {
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+
+			p[0] = 255 - p[0];
+			p[1] = 255 - p[1];
+			p[2] = 255 - p[2];
+		}
+	}
+	makeWxView();
+}
 
 void Image::applyGreyTransform() {
 	for (int i_row = 0; i_row < matrix.rows; i_row++) {
 		for (int i_col = 0; i_col < matrix.cols; i_col++) {
-
-			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
-			
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);			
 			double lum = get_luminance(p[0], p[1], p[2]);
 
 			p[0] = p[1] = p[2] = (uchar) lum;
@@ -81,8 +98,56 @@ void Image::applyVerTransform() {
 	makeWxView();
 }
 
-void Image::applyQuantTranform(int n_quant) {
+void Image::applyQuantTranform(int n_bins) {
+	std::bitset<256> has_shade;
+	has_shade.reset();
+	int n_shades = 0;
 
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+			
+			if (!has_shade[p[0]]) {
+				has_shade[p[0]] = true;
+				n_shades++;
+			}
+		}
+	}	
+
+	wxLogInfo("quant: The current image has %d shades!", n_shades);
+	wxLogInfo("quant: and we will compress it to %d !", n_bins);
+	// This prevents redundant work and edge case high==low.
+	if (n_shades <= n_bins) {
+		wxLogInfo("quant: Skipping! Less shades than bins. ", n_bins);
+		makeWxView();
+		return;
+	}
+
+	int low = 0, high = 255; 
+	while (!has_shade[low] && low < 255) ++low;
+	while (!has_shade[high] && high > 0) --high;
+
+	int bin_size = (high - low + 1) / n_bins;
+	double bin_size_d= (high - low + 1) / (double)n_bins;
+	wxLogInfo("quant: bin size will be %lf !", bin_size_d);
+
+
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+
+			int pv = p[0];
+			// pv in [low .. low + bin_size - 1] goes to bin 0 
+			int pbin = (pv - low)/ bin_size;
+
+			//                     int new_lum = ((l_low-1)+bin_size*(2*bin+1))/2;
+
+			double pintensity = low + pbin * bin_size_d;
+			if (pintensity > 255) pintensity = 255;
+
+			p[0] = p[1] = p[2] = (int) pintensity;
+		}
+	}
 	makeWxView();
 }
 

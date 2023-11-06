@@ -12,4 +12,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/spinctrl.h>
+#include <wx/statline.h>
+
 #endif /* WXFPI_WX_H */

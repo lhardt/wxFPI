@@ -17,10 +17,13 @@ public:
 	Image(std::string filename);
 	Image(const Image& other);
 
+	void SaveAs(std::string filename);
+
 	wxBitmap GetWxBitmap();
 	int GetW();
 	int GetH();
 
+	void applyInvertTransform();
 	void applyGreyTransform();
 	void applyHorTransform();
 	void applyVerTransform();
