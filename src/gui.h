@@ -23,6 +23,7 @@ private:
 	Application* m_app;
 	wxPanel* m_panel;
 	wxScrolledWindow * m_image_container;
+	wxStatusBar* m_status_bar;
 
 	wxButton* m_btn_hor;
 	wxButton* m_btn_ver;
@@ -39,6 +40,7 @@ private:
 
 	void InitMenuBar();
 	void InitControls();
+	void InitStatusBar();
 	void ShowImage();
 public:
 	EditorWindow(Application * app);

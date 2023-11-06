@@ -23,6 +23,7 @@ EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, APP_TITLE
 	has_image = false;
 	InitMenuBar();
 	InitControls();
+	InitStatusBar();
 }
 
 void EditorWindow::InitControls() {
@@ -77,6 +78,10 @@ void EditorWindow::InitControls() {
 	m_btn_invert->Bind(wxEVT_BUTTON, &EditorWindow::OnInvertButtonClicked, this);
 }
 
+void EditorWindow::InitStatusBar() {
+	m_status_bar = new wxStatusBar(this);
+	SetStatusBar(m_status_bar);
+}
 
 void EditorWindow::OnInvertButtonClicked(wxEvent& evt) {
 	if (!has_image) {
@@ -167,6 +172,8 @@ void EditorWindow::ShowImage() {
 	m_image_container->DestroyChildren();
 	wxStaticBitmap* image = new wxStaticBitmap(m_image_container, wxID_ANY, m_image->GetWxBitmap());
 
+	m_status_bar->PushStatusText(wxString::Format("%s - %d x %d", "Image", m_image->GetW(), m_image->GetH()));
+
 	wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->AddStretchSpacer(1);
 	sizer->Add(image, 0, wxALIGN_CENTER);
@@ -178,7 +185,7 @@ void EditorWindow::ShowImage() {
 
 void EditorWindow::OnOpenFileClicked(wxEvent&) {
 	wxLogInfo("Open new file!");
-	wxFileDialog dialog(this, wxT("Select Image"), ".\\res", "test.png", "PNG|*.png");
+	wxFileDialog dialog(this, wxT("Select Image"), ".\\res", "test.png", "Image Files|*");
 	int result = dialog.ShowModal();
 
 	if (wxID_CANCEL == result) {
@@ -197,7 +204,7 @@ void EditorWindow::OnOpenFileClicked(wxEvent&) {
 
 void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
 	wxLogInfo("Save!");
-	wxFileDialog dialog(this, wxT("Save As"), ".\\res", "test.png", "*.png|*.jpg");
+	wxFileDialog dialog(this, wxT("Save As"), ".\\res", "result.png", "Image Files|*");
 	int result = dialog.ShowModal();
 
 	if (wxID_CANCEL == result) {
