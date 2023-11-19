@@ -45,17 +45,23 @@ private:
 public:
 	EditorWindow(Application * app);
 
-	void OnMenuItemClicked(wxEvent & evt);
+	/* Basic Info */
+	// void OnMenuItemClicked(wxEvent & evt);
 	void OnOpenFileClicked(wxEvent& evt);
 	void OnSaveImageClicked(wxEvent& evt);
+	void OnNewFileClicked(wxEvent& evt);
+	void OnAboutClicked(wxEvent& evt);
+	void OnResetButtonClicked(wxEvent& evt);
 
-	/* Transformations */
-	void OnInvertButtonClicked(wxEvent& evt);
+	/* Image Transformations */
 	void OnVerticalButtonClicked(wxEvent& evt);
 	void OnHorizontalButtonClicked(wxEvent& evt);
+
+	/* Color Transformations */
+	void OnInvertButtonClicked(wxEvent& evt);
 	void OnQuantizedButtonClicked(wxEvent& evt);
-	void OnGreyButtonClicked(wxEvent & evt);
-	void OnResetButtonClicked(wxEvent& evt);
+	void OnGreyButtonClicked(wxEvent& evt);
+
 };
 
 #endif /* WXFPI_GUI_H */

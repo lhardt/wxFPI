@@ -8,16 +8,6 @@
 
 static const wxString APP_TITLE = "wxFPI Image Editor";
 
-enum wxID_EditorWindow {
-	DO_NOT_USE = wxID_HIGHEST,
-
-	ID_MENU_NEW,
-	ID_MENU_OPEN,
-	ID_MENU_EXIT,
-	ID_MENU_ABOUT,
-	ID_MENU_SAVE
-};
-
 EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, APP_TITLE, wxDefaultPosition, wxSize(500,500)) {
 	// SetBackgroundColour(wxColor("#2D2D30"));
 	has_image = false;
@@ -150,21 +140,33 @@ void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
 
 void EditorWindow::InitMenuBar() {
 	wxMenuBar* menu_bar = new wxMenuBar();
+
 	wxMenu* menu_file = new wxMenu();
-	wxMenu* menu_info = new wxMenu();
+	{
+		wxMenuItem* item_file_new = new wxMenuItem(menu_file, wxID_ANY, wxT("New\tCtrl+N"), wxT("Create a new file to edit"));
+		wxMenuItem* item_file_save = new wxMenuItem(menu_file, wxID_ANY, wxT("Save\tCtrl+S"), wxT("Save the current image to a file"));
+		wxMenuItem* item_file_open = new wxMenuItem(menu_file, wxID_ANY, wxT("Open\tCtrl+O"), wxT("Open an existing file to edit"));
+		wxMenuItem* item_file_exit = new wxMenuItem(menu_file, wxID_ANY, wxT("Exit\tCtrl+W"), wxT("Close this Editor window"));
+		menu_bar->Append(menu_file, wxT("&File"));
 
-	menu_bar->Append(menu_file, wxT("&File"));
-	menu_bar->Append(menu_info, wxT("&Info"));
+		menu_file->Append(item_file_new);
+		menu_file->Append(item_file_save);
+		menu_file->Append(item_file_open);
+		menu_file->AppendSeparator();
+		menu_file->Append(item_file_exit);
 
-	menu_file->Append(ID_MENU_NEW, wxT("New\tCtrl+N"), wxT("Create a new file to edit"));
-	menu_file->Append(ID_MENU_SAVE, wxT("Save\tCtrl+S"), wxT("Save the current image to a file"));
-	menu_file->Append(ID_MENU_OPEN, wxT("Open\tCtrl+O"), wxT("Open an existing file to edit"));
-	menu_file->AppendSeparator();
-	menu_file->Append(ID_MENU_EXIT, wxT("Exit\tCtrl+W"), wxT("Close this Editor window"));
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnOpenFileClicked, this, item_file_open->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnNewFileClicked, this, item_file_new->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnSaveImageClicked, this, item_file_save->GetId());
+	}
 
-	menu_info->Append(ID_MENU_ABOUT, wxT("About"), wxT("About this program"));
+	wxMenu* menu_help = new wxMenu();
+	{
+		wxMenuItem* item_help_about = new wxMenuItem(menu_file, wxID_ANY, wxT("About"), wxT("About this program"));
+		menu_bar->Append(menu_help, wxT("&Help"));
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnAboutClicked, this, item_help_about->GetId());
+	}
 
-	menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnMenuItemClicked, this);
 	SetMenuBar(menu_bar);
 }
 
@@ -182,6 +184,10 @@ void EditorWindow::ShowImage() {
 	m_image_container->FitInside();
 }
 
+
+void EditorWindow::OnNewFileClicked(wxEvent&) {
+	wxLogInfo("New file!");
+}
 
 void EditorWindow::OnOpenFileClicked(wxEvent&) {
 	wxLogInfo("Open new file!");
@@ -202,6 +208,9 @@ void EditorWindow::OnOpenFileClicked(wxEvent&) {
 	has_image = true;
 }
 
+void EditorWindow::OnAboutClicked(wxEvent& evt) {
+	wxLogInfo("About!");
+}
 void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
 	wxLogInfo("Save!");
 	wxFileDialog dialog(this, wxT("Save As"), ".\\res", "result.png", "Image Files|*");
@@ -215,26 +224,4 @@ void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
 	wxString filename = dialog.GetPath();
 	m_image->SaveAs(filename.ToStdString());
 	wxLogInfo("Saved image as: <%s>!", filename);
-}
-
-
-void EditorWindow::OnMenuItemClicked(wxEvent& evt) {
-	switch (evt.GetId()) {
-	case ID_MENU_NEW:
-		wxLogInfo("New!");
-		break;
-	case ID_MENU_OPEN:
-		OnOpenFileClicked(evt);
-		break;
-	case ID_MENU_SAVE:
-		OnSaveImageClicked(evt);
-		break;
-	case ID_MENU_ABOUT:
-		wxLogInfo("About!");
-		break;
-	case ID_MENU_EXIT:
-		wxLogInfo("Close!");
-		this->Close();
-		break;
-	}
 }
