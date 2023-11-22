@@ -151,9 +151,106 @@ void Image::applyQuantTranform(int n_bins) {
 	makeWxView();
 }
 
+double Kernel::applyToPixelChannel(const Kernel& kernel,
+	uchar p00, uchar p01, uchar p02,
+	uchar p10, uchar p11, uchar p12,
+	uchar p20, uchar p21, uchar p22) const {
+
+	auto& w = this->weights;
+
+	double result = shift
+		+ w[0][0] * p00 + w[0][1] * p01 + w[0][2] * p02
+		+ w[1][0] * p10 + w[1][1] * p11 + w[1][2] * p12
+		+ w[2][0] * p20 + w[2][1] * p21 + w[2][2] * p22;
+	
+	if(result > 255) result = 255;
+	if (result < 0) result = 0;
+	return result;
+}
+
+cv::Vec3b Kernel::applyToPixel(const Kernel& kernel,
+	const cv::Vec3b& p00, const cv::Vec3b& p01, const cv::Vec3b& p02,
+	const cv::Vec3b& p10, const cv::Vec3b& p11, const cv::Vec3b& p12,
+	const cv::Vec3b& p20, const cv::Vec3b& p21, const cv::Vec3b& p22) const {
+	cv::Vec3b out; 
+
+	for (int ch = 0; ch < 3; ++ch) {
+		out[ch] = applyToPixelChannel(kernel, 
+			p00[ch], p01[ch], p02[ch], 
+			p10[ch], p11[ch], p12[ch], 
+			p20[ch], p21[ch], p22[ch]);
+	}
+	return out;
+}
+
+
+void Image::applyKernel(const Kernel& kernel) {
+	cv::Mat temp = this->matrix.clone();
+
+	/* Top line */
+	for (int i = 1; i < matrix.cols - 1; ++i) {
+		int x = i, y = 0;
+		cv::Vec3b& p = temp.at<cv::Vec3b>(y, x);
+		p = kernel.applyToPixel(kernel,
+			at(y, x - 1), at(y, x), at(y, x + 1),
+			at(y, x - 1), at(y, x), at(y, x + 1),
+			at(y + 1, x - 1), at(y + 1, x), at(y + 1, x + 1));
+	}
+	/* Bottom line */
+	for (int i = 1; i < matrix.cols - 1; ++i) {
+		int x = i, y = matrix.rows - 1;
+		cv::Vec3b& p = temp.at<cv::Vec3b>(y, x);
+		p = kernel.applyToPixel(kernel,
+			at(y - 1, x - 1), at(y - 1, x), at(y - 1, x + 1),
+			at(y, x - 1), at(y, x), at(y, x + 1),
+			at(y, x - 1), at(y, x), at(y, x + 1));
+	}
+
+	/* Left */
+	for (int i = 1; i < matrix.rows - 1; ++i) {
+		int x = 0, y = i;
+		cv::Vec3b& p = temp.at<cv::Vec3b>(y, x);
+
+		p = kernel.applyToPixel(kernel,
+			at(y - 1, x), at(y - 1, x), at(y - 1, x + 1),
+			at(y, x), at(y, x), at(y, x + 1),
+			at(y + 1, x), at(y + 1, x), at(y + 1, x + 1)
+		);
+	}
+	/* Right */
+	for (int i = 1; i < matrix.rows - 1; ++i) {
+		int x = matrix.cols-1, y = i;
+		cv::Vec3b& p = temp.at<cv::Vec3b>(y, x);
+
+		p = kernel.applyToPixel(kernel,
+			at(y - 1, x - 1), at(y - 1, x), at(y - 1, x),
+			at(y, x - 1), at(y, x), at(y, x),
+			at(y + 1, x - 1), at(y + 1, x), at(y + 1, x)
+		);
+	}
+
+	/* Center of Image */
+	for (int x = 1; x < matrix.cols - 1; ++x) {
+		for (int y = 1; y < matrix.rows - 1; ++y) {
+			cv::Vec3b& p = temp.at<cv::Vec3b>(y, x);
+
+			p = kernel.applyToPixel(kernel,
+				at(y - 1, x - 1), at(y - 1, x), at(y - 1, x + 1),
+				at(y, x - 1), at(y, x), at(y, x + 1),
+				at(y + 1, x - 1), at(y + 1, x), at(y + 1, x + 1)
+			);
+		}
+	}
+	this->matrix = temp;
+
+	makeWxView();
+}
+
+cv::Vec3b& Image::at(int row, int col) {
+	return matrix.at<cv::Vec3b>(row, col);
+}
+
 double get_luminance(int r, int g, int b) {
 	// NTSC formula for pixel intensity;
 	return 0.299 * r + 0.587 * g + 0.114 * b;
 }
-
-//wxBitmap * get

@@ -8,6 +8,10 @@
 
 static const wxString APP_TITLE = "wxFPI Image Editor";
 
+/*********************************************************/
+/*                    INITIALIZATION                     */
+/*********************************************************/
+
 EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, APP_TITLE, wxDefaultPosition, wxSize(500,500)) {
 	// SetBackgroundColour(wxColor("#2D2D30"));
 	has_image = false;
@@ -73,6 +77,179 @@ void EditorWindow::InitStatusBar() {
 	SetStatusBar(m_status_bar);
 }
 
+void EditorWindow::InitMenuBar() {
+	wxMenuBar* menu_bar = new wxMenuBar();
+
+	wxMenu* menu_file = new wxMenu();
+	{
+		wxMenuItem* item_file_new = new wxMenuItem(menu_file, wxID_ANY, wxT("New\tCtrl+N"), wxT("Create a new file to edit"));
+		wxMenuItem* item_file_save = new wxMenuItem(menu_file, wxID_ANY, wxT("Save\tCtrl+S"), wxT("Save the current image to a file"));
+		wxMenuItem* item_file_open = new wxMenuItem(menu_file, wxID_ANY, wxT("Open\tCtrl+O"), wxT("Open an existing file to edit"));
+		wxMenuItem* item_file_exit = new wxMenuItem(menu_file, wxID_ANY, wxT("Exit\tCtrl+W"), wxT("Close this Editor window"));
+
+		menu_file->Append(item_file_new);
+		menu_file->Append(item_file_save);
+		menu_file->Append(item_file_open);
+		menu_file->AppendSeparator();
+		menu_file->Append(item_file_exit);
+
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnOpenFileClicked, this, item_file_open->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnNewFileClicked, this, item_file_new->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnSaveImageClicked, this, item_file_save->GetId());
+
+		menu_bar->Append(menu_file, wxT("&File"));
+	}
+
+	wxMenu* menu_image = new wxMenu();
+	{
+		wxMenuItem* item_image_zoom_in2x = new wxMenuItem(menu_image, wxID_ANY, wxT("Zoom In (2x)"), wxT(" "));
+		wxMenuItem* item_image_zoom_out2x = new wxMenuItem(menu_image, wxID_ANY, wxT("Zoom Out (2x)"), wxT(" "));
+		wxMenuItem* item_image_rot_l = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Left"), wxT("Rotate the image to the left"));
+		wxMenuItem* item_image_rot_r = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Right"), wxT("Rotate the image to the right"));
+		wxMenuItem* item_image_flip_h = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Horizontally"), wxT("Flip the image horizontally"));
+		wxMenuItem* item_image_flip_v = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Vertically"), wxT("Flip the image vertically"));
+
+		menu_image->Append(item_image_zoom_in2x);
+		menu_image->Append(item_image_zoom_out2x);
+		menu_image->AppendSeparator();
+		menu_image->Append(item_image_rot_l);
+		menu_image->Append(item_image_rot_r);
+		menu_image->AppendSeparator();
+		menu_image->Append(item_image_flip_h);
+		menu_image->Append(item_image_flip_v);
+
+		menu_bar->Append(menu_image, wxT("&Image"));
+	}
+
+	wxMenu* menu_color = new wxMenu();
+	{
+		wxMenuItem* item_color_histogram = new wxMenuItem(menu_color, wxID_ANY, wxT("Show Histogram"), wxT(" "));
+		wxMenuItem* item_color_invert = new wxMenuItem(menu_color, wxID_ANY, wxT("Invert Image"), wxT(" "));
+		wxMenuItem* item_color_grey = new wxMenuItem(menu_color, wxID_ANY, wxT("Convert to Greyscale"), wxT(" "));
+		wxMenuItem* item_color_equalize = new wxMenuItem(menu_color, wxID_ANY, wxT("Equalize Image"), wxT(" "));
+		wxMenuItem* item_color_match = new wxMenuItem(menu_color, wxID_ANY, wxT("Match Histogram"), wxT(" "));
+
+		menu_color->Append(item_color_histogram);
+		menu_color->AppendSeparator();
+		menu_color->Append(item_color_invert);
+		menu_color->Append(item_color_grey);
+		menu_color->AppendSeparator();
+		menu_color->Append(item_color_equalize);
+		menu_color->Append(item_color_match);
+
+		menu_bar->Append(menu_color, wxT("&Color"));
+	}
+
+	wxMenu* menu_conv = new wxMenu();
+	{
+		wxMenuItem* item_conv_show = new wxMenuItem(menu_conv, wxID_ANY, wxT("Custom Convolution"), wxT(" "));
+		wxMenuItem* item_conv_gauss = new wxMenuItem(menu_conv, wxID_ANY, wxT("Gaussian Conv.\tCtrl+G"), wxT(" "));
+		wxMenuItem* item_conv_lapl = new wxMenuItem(menu_conv, wxID_ANY, wxT("Laplacian Conv."), wxT(" "));
+		wxMenuItem* item_conv_high = new wxMenuItem(menu_conv, wxID_ANY, wxT("High-Pass Conv."), wxT(" "));
+		wxMenuItem* item_conv_prew_hx = new wxMenuItem(menu_conv, wxID_ANY, wxT("Prewitt Hx Conv."), wxT(" "));
+		wxMenuItem* item_conv_prew_hy = new wxMenuItem(menu_conv, wxID_ANY, wxT("Prewitt Hy Conv."), wxT(" "));
+		wxMenuItem* item_conv_sobel_hx = new wxMenuItem(menu_conv, wxID_ANY, wxT("Sobel Hx Conv."), wxT(" "));
+		wxMenuItem* item_conv_sobel_hy = new wxMenuItem(menu_conv, wxID_ANY, wxT("Sobel Hy. Conv"), wxT(" "));
+
+		menu_conv->Append(item_conv_show);
+		menu_conv->AppendSeparator();
+		menu_conv->Append(item_conv_gauss);
+		menu_conv->Append(item_conv_lapl);
+		menu_conv->Append(item_conv_high);
+		menu_conv->Append(item_conv_prew_hx);
+		menu_conv->Append(item_conv_prew_hy);
+		menu_conv->Append(item_conv_sobel_hx);
+		menu_conv->Append(item_conv_sobel_hy);
+
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvGauss, this, item_conv_gauss->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvLaplace, this, item_conv_lapl->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvHigh, this, item_conv_high->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvPrewHx, this, item_conv_prew_hx->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvPrewHy, this, item_conv_prew_hy->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvSobelHx, this, item_conv_sobel_hx->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvSobelHy, this, item_conv_sobel_hy->GetId());
+
+		menu_bar->Append(menu_conv, wxT("&Convolution"));
+	}
+
+
+	wxMenu* menu_help = new wxMenu();
+	{
+		wxMenuItem* item_help_about = new wxMenuItem(menu_help, wxID_ANY, wxT("About"), wxT("About this program"));
+		menu_help->Append(item_help_about);
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnAboutClicked, this, item_help_about->GetId());
+
+		menu_bar->Append(menu_help, wxT("&Help"));
+	}
+
+	SetMenuBar(menu_bar);
+}
+
+/*********************************************************/
+/*                       IMAGE I/O                       */
+/*********************************************************/
+
+void EditorWindow::ShowImage() {
+	m_image_container->DestroyChildren();
+	wxStaticBitmap* image = new wxStaticBitmap(m_image_container, wxID_ANY, m_image->GetWxBitmap());
+
+	m_status_bar->PushStatusText(wxString::Format("%s - %d x %d", "Image", m_image->GetW(), m_image->GetH()));
+
+	wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->AddStretchSpacer(1);
+	sizer->Add(image, 0, wxALIGN_CENTER);
+	sizer->AddStretchSpacer(1);
+	m_image_container->SetSizer(sizer);
+	m_image_container->FitInside();
+}
+
+
+void EditorWindow::OnNewFileClicked(wxEvent&) {
+	wxLogInfo("New file!");
+}
+
+void EditorWindow::OnOpenFileClicked(wxEvent&) {
+	wxLogInfo("Open new file!");
+	wxFileDialog dialog(this, wxT("Select Image"), ".\\res", "test.png", "Image Files|*");
+	int result = dialog.ShowModal();
+
+	if (wxID_CANCEL == result) {
+		wxLogInfo("Canceled operation!");
+		return;
+	}
+
+	wxString filename = dialog.GetPath();
+	wxLogInfo("Chosen file: <%s>!", filename);
+	m_image = std::unique_ptr<Image>(new Image(filename.ToStdString()));
+	m_original_image = std::unique_ptr<Image>(new Image(filename.ToStdString()));
+
+	ShowImage();
+	has_image = true;
+}
+
+void EditorWindow::OnAboutClicked(wxEvent& evt) {
+	wxLogInfo("About!");
+}
+
+void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
+	wxLogInfo("Save!");
+	wxFileDialog dialog(this, wxT("Save As"), ".\\res", "result.png", "Image Files|*");
+	int result = dialog.ShowModal();
+
+	if (wxID_CANCEL == result) {
+		wxLogInfo("Canceled operation!");
+		return;
+	}
+
+	wxString filename = dialog.GetPath();
+	m_image->SaveAs(filename.ToStdString());
+	wxLogInfo("Saved image as: <%s>!", filename);
+}
+
+/*********************************************************/
+/*                   COLOR TRANSFORM.                    */
+/*********************************************************/
+
 void EditorWindow::OnInvertButtonClicked(wxEvent& evt) {
 	if (!has_image) {
 		wxLogInfo("Perform 'Invert' Operation with no Image!");
@@ -137,91 +314,53 @@ void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
 
 }
 
+/*********************************************************/
+/*                   IMAGE TRANSFORM.                    */
+/*********************************************************/
 
-void EditorWindow::InitMenuBar() {
-	wxMenuBar* menu_bar = new wxMenuBar();
 
-	wxMenu* menu_file = new wxMenu();
-	{
-		wxMenuItem* item_file_new = new wxMenuItem(menu_file, wxID_ANY, wxT("New\tCtrl+N"), wxT("Create a new file to edit"));
-		wxMenuItem* item_file_save = new wxMenuItem(menu_file, wxID_ANY, wxT("Save\tCtrl+S"), wxT("Save the current image to a file"));
-		wxMenuItem* item_file_open = new wxMenuItem(menu_file, wxID_ANY, wxT("Open\tCtrl+O"), wxT("Open an existing file to edit"));
-		wxMenuItem* item_file_exit = new wxMenuItem(menu_file, wxID_ANY, wxT("Exit\tCtrl+W"), wxT("Close this Editor window"));
-		menu_bar->Append(menu_file, wxT("&File"));
+/*********************************************************/
+/*             CONVOLUTION TRANSFORM.                    */
+/*********************************************************/
 
-		menu_file->Append(item_file_new);
-		menu_file->Append(item_file_save);
-		menu_file->Append(item_file_open);
-		menu_file->AppendSeparator();
-		menu_file->Append(item_file_exit);
+void EditorWindow::OnShowConvClicked(wxEvent& evt) {
 
-		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnOpenFileClicked, this, item_file_open->GetId());
-		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnNewFileClicked, this, item_file_new->GetId());
-		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnSaveImageClicked, this, item_file_save->GetId());
-	}
-
-	wxMenu* menu_help = new wxMenu();
-	{
-		wxMenuItem* item_help_about = new wxMenuItem(menu_file, wxID_ANY, wxT("About"), wxT("About this program"));
-		menu_bar->Append(menu_help, wxT("&Help"));
-		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnAboutClicked, this, item_help_about->GetId());
-	}
-
-	SetMenuBar(menu_bar);
 }
 
-void EditorWindow::ShowImage() {
-	m_image_container->DestroyChildren();
-	wxStaticBitmap* image = new wxStaticBitmap(m_image_container, wxID_ANY, m_image->GetWxBitmap());
-
-	m_status_bar->PushStatusText(wxString::Format("%s - %d x %d", "Image", m_image->GetW(), m_image->GetH()));
-
-	wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->AddStretchSpacer(1);
-	sizer->Add(image, 0, wxALIGN_CENTER);
-	sizer->AddStretchSpacer(1);
-	m_image_container->SetSizer(sizer);
-	m_image_container->FitInside();
-}
-
-
-void EditorWindow::OnNewFileClicked(wxEvent&) {
-	wxLogInfo("New file!");
-}
-
-void EditorWindow::OnOpenFileClicked(wxEvent&) {
-	wxLogInfo("Open new file!");
-	wxFileDialog dialog(this, wxT("Select Image"), ".\\res", "test.png", "Image Files|*");
-	int result = dialog.ShowModal();
-
-	if (wxID_CANCEL == result) {
-		wxLogInfo("Canceled operation!");
+void EditorWindow::OnConv(const Kernel& kernel) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Convolution' Operation with no Image!");
 		return;
 	}
 
-	wxString filename = dialog.GetPath();
-	wxLogInfo("Chosen file: <%s>!", filename);
-	m_image = std::unique_ptr<Image>(new Image(filename.ToStdString()));
-	m_original_image = std::unique_ptr<Image>(new Image(filename.ToStdString()));
-
+	try {
+		m_image->applyKernel(kernel);
+	}
+	catch (std::exception& ex) {
+		wxLogError("Exception! %s", ex.what());
+	}
 	ShowImage();
-	has_image = true;
 }
 
-void EditorWindow::OnAboutClicked(wxEvent& evt) {
-	wxLogInfo("About!");
+void EditorWindow::OnConvGauss(wxEvent& evt) {
+	wxLogInfo("Performing 'Gaussian' convolution!");
+	this->OnConv(KERNEL_GAUSS);
 }
-void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
-	wxLogInfo("Save!");
-	wxFileDialog dialog(this, wxT("Save As"), ".\\res", "result.png", "Image Files|*");
-	int result = dialog.ShowModal();
-
-	if (wxID_CANCEL == result) {
-		wxLogInfo("Canceled operation!");
-		return;
-	}
-
-	wxString filename = dialog.GetPath();
-	m_image->SaveAs(filename.ToStdString());
-	wxLogInfo("Saved image as: <%s>!", filename);
+void EditorWindow::OnConvLaplace(wxEvent& evt) {
+	this->OnConv(KERNEL_LAPLACE);
+}
+void EditorWindow::OnConvHigh(wxEvent& evt) {
+	this->OnConv(KERNEL_HIGH);
+}
+void EditorWindow::OnConvPrewHx(wxEvent& evt) {
+	this->OnConv(KERNEL_PREW_HX);
+}
+void EditorWindow::OnConvPrewHy(wxEvent& evt) {
+	this->OnConv(KERNEL_PREW_HY);
+}
+void EditorWindow::OnConvSobelHx(wxEvent& evt) {
+	this->OnConv(KERNEL_SOBEL_HX);
+}
+void EditorWindow::OnConvSobelHy(wxEvent& evt) {
+	this->OnConv(KERNEL_SOBEL_HY);
 }

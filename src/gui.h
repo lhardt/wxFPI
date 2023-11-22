@@ -62,6 +62,18 @@ public:
 	void OnQuantizedButtonClicked(wxEvent& evt);
 	void OnGreyButtonClicked(wxEvent& evt);
 
+	/* Convolutions */
+	void OnShowConvClicked(wxEvent& evt);
+	void OnConv(const Kernel& kernel);
+
+	void OnConvGauss(wxEvent& evt);
+	void OnConvLaplace(wxEvent& evt);
+	void OnConvHigh(wxEvent& evt);
+	void OnConvPrewHx(wxEvent& evt);
+	void OnConvPrewHy(wxEvent& evt);
+	void OnConvSobelHx(wxEvent& evt);
+	void OnConvSobelHy(wxEvent& evt);
+
 };
 
 #endif /* WXFPI_GUI_H */
