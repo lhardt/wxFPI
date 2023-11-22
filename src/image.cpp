@@ -105,6 +105,41 @@ void Image::applyVerTransform() {
 	makeWxView();
 }
 
+void Image::applyRotLeftTranform() {
+	cv::Mat new_image(cv::Size(matrix.rows, matrix.cols), CV_8UC3);
+
+	for (int i_row = 0; i_row < matrix.rows; ++i_row) {
+		for (int i_col = 0; i_col < matrix.cols; ++i_col) {
+			cv::Vec3b& p = new_image.at<cv::Vec3b>(matrix.cols - 1 - i_col, i_row); //(i_col, /**/ i_row);
+			p = at(i_row, i_col);
+		}
+	}
+
+	wxLogInfo("new image has rows %d cols %d", new_image.rows, new_image.cols);
+
+	this->matrix = new_image;
+	int tmp = h; 
+	h = w; w = tmp;
+
+	makeWxView();
+}
+void Image::applyRotRightTranform() {
+	cv::Mat new_image(cv::Size(matrix.rows, matrix.cols), CV_8UC3);
+
+	for (int i_row = 0; i_row < matrix.rows; ++i_row) {
+		for (int i_col = 0; i_col < matrix.cols; ++i_col) {
+			cv::Vec3b& p = new_image.at<cv::Vec3b>(i_col, matrix.rows - 1 - i_row);  //(/* -*/ i_col, i_row);
+			p = at(i_row, i_col);
+		}
+	}
+	wxLogInfo("new image has rows %d cols %d", new_image.rows, new_image.cols);
+	this->matrix = new_image;
+	int tmp = h;
+	h = w; w = tmp;
+	makeWxView();
+}
+
+
 void Image::applyQuantTranform(int n_bins) {
 	std::bitset<256> has_shade;
 	has_shade.reset();
@@ -134,10 +169,9 @@ void Image::applyQuantTranform(int n_bins) {
 	while (!has_shade[low] && low < 255) ++low;
 	while (!has_shade[high] && high > 0) --high;
 
-	int bin_size = (high - low + 1) / n_bins;
+	int bin_size = (high - low + 1LL) / n_bins;
 	double bin_size_d= (high - low + 1) / (double)n_bins;
 	wxLogInfo("quant: bin size will be %lf !", bin_size_d);
-
 
 	for (int i_row = 0; i_row < matrix.rows; i_row++) {
 		for (int i_col = 0; i_col < matrix.cols; i_col++) {

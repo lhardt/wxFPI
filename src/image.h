@@ -31,6 +31,8 @@ public:
 	void applyGreyTransform();
 	void applyHorTransform();
 	void applyVerTransform();
+	void applyRotLeftTranform();
+	void applyRotRightTranform();
 	void applyQuantTranform(int n_tones);
 	void applyKernel(const Kernel & kernel);
 };

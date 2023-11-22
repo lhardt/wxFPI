@@ -46,7 +46,6 @@ public:
 	EditorWindow(Application * app);
 
 	/* Basic Info */
-	// void OnMenuItemClicked(wxEvent & evt);
 	void OnOpenFileClicked(wxEvent& evt);
 	void OnSaveImageClicked(wxEvent& evt);
 	void OnNewFileClicked(wxEvent& evt);
@@ -56,6 +55,8 @@ public:
 	/* Image Transformations */
 	void OnVerticalButtonClicked(wxEvent& evt);
 	void OnHorizontalButtonClicked(wxEvent& evt);
+	void OnRotateLeft(wxEvent& evt);
+	void OnRotateRight(wxEvent& evt);
 
 	/* Color Transformations */
 	void OnInvertButtonClicked(wxEvent& evt);
@@ -73,7 +74,18 @@ public:
 	void OnConvPrewHy(wxEvent& evt);
 	void OnConvSobelHx(wxEvent& evt);
 	void OnConvSobelHy(wxEvent& evt);
+};
 
+class HistogramWindow : public wxFrame {
+private:
+	Application* m_app;
+	EditorWindow* m_parent;
+
+public:
+	HistogramWindow(EditorWindow* parent);
+
+	void UpdateHistogram();
+	void SetVisibility(bool visible);
 };
 
 #endif /* WXFPI_GUI_H */

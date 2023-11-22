@@ -104,8 +104,8 @@ void EditorWindow::InitMenuBar() {
 	{
 		wxMenuItem* item_image_zoom_in2x = new wxMenuItem(menu_image, wxID_ANY, wxT("Zoom In (2x)"), wxT(" "));
 		wxMenuItem* item_image_zoom_out2x = new wxMenuItem(menu_image, wxID_ANY, wxT("Zoom Out (2x)"), wxT(" "));
-		wxMenuItem* item_image_rot_l = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Left"), wxT("Rotate the image to the left"));
-		wxMenuItem* item_image_rot_r = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Right"), wxT("Rotate the image to the right"));
+		wxMenuItem* item_image_rot_l = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Left\tCtrl+,"), wxT("Rotate the image to the left"));
+		wxMenuItem* item_image_rot_r = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Right\tCtrl+."), wxT("Rotate the image to the right"));
 		wxMenuItem* item_image_flip_h = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Horizontally"), wxT("Flip the image horizontally"));
 		wxMenuItem* item_image_flip_v = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Vertically"), wxT("Flip the image vertically"));
 		wxMenuItem* item_image_reset = new wxMenuItem(menu_file, wxID_ANY, wxT("Reset\tCtrl+R"), wxT("Reset the image as originally loaded"));
@@ -121,6 +121,8 @@ void EditorWindow::InitMenuBar() {
 		menu_image->AppendSeparator();
 		menu_image->Append(item_image_reset);
 
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnRotateLeft, this, item_image_rot_l->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnRotateRight, this, item_image_rot_r->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnResetButtonClicked, this, item_image_reset->GetId());
 
 		menu_bar->Append(menu_image, wxT("&Image"));
@@ -332,7 +334,28 @@ void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
 /*                   IMAGE TRANSFORM.                    */
 /*********************************************************/
 
+void EditorWindow::OnRotateLeft(wxEvent& evt) {
+	wxLogInfo("Perform 'RotLeft' Operation!");
 
+	try {
+		m_image->applyRotLeftTranform();
+	}
+	catch (std::exception& ex) {
+		wxLogError("Exception! %s", ex.what());
+	}
+	ShowImage();
+}
+
+void EditorWindow::OnRotateRight(wxEvent& evt) {
+	wxLogInfo("Perform 'RotRight' Operation!");
+	try {
+		m_image->applyRotRightTranform();
+	}
+	catch (std::exception& ex) {
+		wxLogError("Exception! %s", ex.what());
+	}
+	ShowImage();
+}
 /*********************************************************/
 /*             CONVOLUTION TRANSFORM.                    */
 /*********************************************************/
