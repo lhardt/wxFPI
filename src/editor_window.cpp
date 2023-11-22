@@ -108,6 +108,7 @@ void EditorWindow::InitMenuBar() {
 		wxMenuItem* item_image_rot_r = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Right"), wxT("Rotate the image to the right"));
 		wxMenuItem* item_image_flip_h = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Horizontally"), wxT("Flip the image horizontally"));
 		wxMenuItem* item_image_flip_v = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Vertically"), wxT("Flip the image vertically"));
+		wxMenuItem* item_image_reset = new wxMenuItem(menu_file, wxID_ANY, wxT("Reset\tCtrl+R"), wxT("Reset the image as originally loaded"));
 
 		menu_image->Append(item_image_zoom_in2x);
 		menu_image->Append(item_image_zoom_out2x);
@@ -117,6 +118,10 @@ void EditorWindow::InitMenuBar() {
 		menu_image->AppendSeparator();
 		menu_image->Append(item_image_flip_h);
 		menu_image->Append(item_image_flip_v);
+		menu_image->AppendSeparator();
+		menu_image->Append(item_image_reset);
+
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnResetButtonClicked, this, item_image_reset->GetId());
 
 		menu_bar->Append(menu_image, wxT("&Image"));
 	}
@@ -136,6 +141,9 @@ void EditorWindow::InitMenuBar() {
 		menu_color->AppendSeparator();
 		menu_color->Append(item_color_equalize);
 		menu_color->Append(item_color_match);
+
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnInvertButtonClicked, this, item_color_invert->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnGreyButtonClicked, this, item_color_grey->GetId());
 
 		menu_bar->Append(menu_color, wxT("&Color"));
 	}
@@ -190,6 +198,7 @@ void EditorWindow::InitMenuBar() {
 /*********************************************************/
 
 void EditorWindow::ShowImage() {
+	m_image_container->Freeze();
 	m_image_container->DestroyChildren();
 	wxStaticBitmap* image = new wxStaticBitmap(m_image_container, wxID_ANY, m_image->GetWxBitmap());
 
@@ -197,10 +206,11 @@ void EditorWindow::ShowImage() {
 
 	wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->AddStretchSpacer(1);
-	sizer->Add(image, 0, wxALIGN_CENTER);
+	sizer->Add(image, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, 50);
 	sizer->AddStretchSpacer(1);
 	m_image_container->SetSizer(sizer);
 	m_image_container->FitInside();
+	m_image_container->Thaw();
 }
 
 
