@@ -2,6 +2,13 @@
 
 #include <bitset>
 
+Image::Image(int h, int w) : matrix(h, w, CV_8UC3, cv::Scalar(255,255,255)){
+	cv::Size sz = matrix.size();
+	this->w = sz.width;
+	this->h = sz.height;
+	makeWxView();
+}
+
 Image::Image(std::string filename)  {
 	auto img = cv::imread(filename, cv::IMREAD_COLOR);
 	if (img.empty()) {

@@ -17,6 +17,7 @@ private:
 public:
 	Image(std::string filename);
 	Image(const Image& other);
+	Image(int h, int w);
 
 	void SaveAs(std::string filename);
 

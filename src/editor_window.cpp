@@ -215,7 +215,11 @@ void EditorWindow::ShowImage() {
 
 
 void EditorWindow::OnNewFileClicked(wxEvent&) {
-	wxLogInfo("New file!");
+	wxLogInfo("New file!!");
+	m_image = std::unique_ptr<Image>(new Image(500, 500));
+	m_original_image = std::unique_ptr<Image>(new Image(500, 500));
+	ShowImage();
+	has_image = true;
 }
 
 void EditorWindow::OnOpenFileClicked(wxEvent&) {
