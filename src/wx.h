@@ -14,5 +14,6 @@
 
 #include <wx/spinctrl.h>
 #include <wx/statline.h>
+#include <wx/numdlg.h> 
 
 #endif /* WXFPI_WX_H */

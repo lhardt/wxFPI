@@ -37,11 +37,31 @@ private:
 	wxSpinCtrlDouble* m_weight_inputs[3][3];
 };	
 
+
+class HistogramDialog : public wxDialog {
+public:
+	HistogramDialog(EditorWindow* parent);
+
+	void UpdateHistogram(Image & image);
+	void SetVisibility(bool visible);
+private:
+	void InitControls();
+	Application* m_app;
+	EditorWindow* m_parent;
+
+	wxStaticBitmap* m_view;
+	wxBitmap m_bitmap;
+};
+
 class EditorWindow : public wxFrame {
 private:
 	Application* m_app;
+
 	KernelDialog* m_kernel_dialog;
 	int m_kernel_dialog_id = 0;
+	HistogramDialog* m_histogram_dialog;
+	int m_histogram_dialog_id = 0;
+
 	wxPanel* m_panel;
 	wxScrolledWindow * m_image_container;
 	wxStatusBar* m_status_bar;
@@ -62,7 +82,7 @@ private:
 	void InitMenuBar();
 	void InitControls();
 	void InitStatusBar();
-	void InitKernelDialog();
+	void InitDialogs();
 	void ShowImage();
 public:
 	EditorWindow(Application * app);
@@ -79,6 +99,12 @@ public:
 	void OnHorizontalButtonClicked(wxEvent& evt);
 	void OnRotateLeft(wxEvent& evt);
 	void OnRotateRight(wxEvent& evt);
+
+	/* Histogram Window */
+	void OnShowHistogramWindow(wxEvent& evt);
+	bool IsUsingHistogramWindow();
+	void OpenHistogramWindow();
+	void UpdateHistogram(); 
 
 	/* Color Transformations */
 	void OnInvertButtonClicked(wxEvent& evt);
@@ -101,16 +127,5 @@ public:
 	void OnConvSobelHy(wxEvent& evt);
 };
 
-class HistogramWindow : public wxFrame {
-private:
-	Application* m_app;
-	EditorWindow* m_parent;
-
-public:
-	HistogramWindow(EditorWindow* parent);
-
-	void UpdateHistogram();
-	void SetVisibility(bool visible);
-};
 
 #endif /* WXFPI_GUI_H */

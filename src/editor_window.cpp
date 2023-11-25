@@ -18,7 +18,7 @@ EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, APP_TITLE
 	InitMenuBar();
 	InitControls();
 	InitStatusBar();
-	InitKernelDialog();
+	InitDialogs();
 }
 
 void EditorWindow::InitControls() {
@@ -38,9 +38,9 @@ void EditorWindow::InitControls() {
 	m_btn_quant->SetToolTip("(Q)uantize: Reduce the amount of shades of grey in the image");
 	m_btn_reset->SetToolTip("(R)eset: Undo all transformations to the current image");
 
-	m_spin_quant = new wxSpinCtrl(m_panel);
-	m_spin_quant->SetMin(1);
-	m_spin_quant->SetMax(255);
+	//m_spin_quant = new wxSpinCtrl(m_panel);
+	//m_spin_quant->SetMin(1);
+	//m_spin_quant->SetMax(255);
 
 	m_image_container = new wxScrolledWindow(m_panel, wxID_ANY);
 	m_image_container->SetBackgroundColour(wxColor("#2D2D30"));
@@ -53,7 +53,7 @@ void EditorWindow::InitControls() {
 	controls_sizer->Add(m_btn_invert, 0, wxEXPAND);
 	controls_sizer->Add(m_btn_grey, 0, wxEXPAND);
 	controls_sizer->Add(new wxStaticLine(m_panel), 0, wxEXPAND | wxTOP | wxBOTTOM, 5);
-	controls_sizer->Add(m_spin_quant, 0, wxEXPAND);
+	//controls_sizer->Add(m_spin_quant, 0, wxEXPAND);
 	controls_sizer->Add(m_btn_quant, 0, wxEXPAND);
 	controls_sizer->Add(new wxStaticLine(m_panel), 0, wxEXPAND | wxTOP | wxBOTTOM, 5);
 	controls_sizer->Add(m_btn_reset, 0, wxEXPAND);
@@ -152,6 +152,7 @@ void EditorWindow::InitMenuBar() {
 		menu_color->Append(item_color_equalize);
 		menu_color->Append(item_color_match);
 
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnShowHistogramWindow, this, item_color_histogram->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnInvertButtonClicked, this, item_color_invert->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnGreyButtonClicked, this, item_color_grey->GetId());
 
@@ -204,10 +205,12 @@ void EditorWindow::InitMenuBar() {
 	SetMenuBar(menu_bar);
 }
 
-void EditorWindow::InitKernelDialog() {
+void EditorWindow::InitDialogs() {
 	m_kernel_dialog = new KernelDialog(this);
 	m_kernel_dialog_id = m_kernel_dialog->GetId();
 
+	m_histogram_dialog = new HistogramDialog(this);
+	m_histogram_dialog_id = m_histogram_dialog->GetId();
 }
 
 /*********************************************************/
@@ -228,6 +231,8 @@ void EditorWindow::ShowImage() {
 	m_image_container->SetSizer(sizer);
 	m_image_container->FitInside();
 	m_image_container->Thaw();
+
+	UpdateHistogram();
 }
 
 void EditorWindow::OnNewFileClicked(wxEvent&) {
@@ -280,6 +285,31 @@ void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
 /*                   COLOR TRANSFORM.                    */
 /*********************************************************/
 
+void EditorWindow::OnShowHistogramWindow(wxEvent& evt) {
+	OpenHistogramWindow();
+}
+
+bool EditorWindow::IsUsingHistogramWindow() {
+	return m_histogram_dialog_id != 0
+		&& wxWindow::FindWindowById(m_histogram_dialog_id) != NULL
+		&& m_histogram_dialog->IsVisible();
+}
+
+void EditorWindow::OpenHistogramWindow() {
+	if (m_histogram_dialog_id == 0 || wxWindow::FindWindowById(m_histogram_dialog_id) == NULL) {
+		m_histogram_dialog = new HistogramDialog(this);
+		m_histogram_dialog_id = m_kernel_dialog->GetId();
+	}
+	m_histogram_dialog->Show();
+}
+
+void EditorWindow::UpdateHistogram() {
+	if (IsUsingHistogramWindow()) {
+		wxLogInfo(wxT("Updating Histogram!"));
+		m_histogram_dialog->UpdateHistogram(*m_image);
+	}
+}
+
 void EditorWindow::OnInvertButtonClicked(wxEvent& evt) {
 	if (!has_image) {
 		wxLogInfo("Perform 'Invert' Operation with no Image!");
@@ -300,32 +330,13 @@ void EditorWindow::OnGreyButtonClicked(wxEvent & evt) {
 	ShowImage();
 }
 
-void EditorWindow::OnHorizontalButtonClicked(wxEvent& evt) {
-	if (!has_image) {
-		wxLogInfo("Perform 'Horizontal' Operation with no Image!");
-		return;
-	}
-	wxLogInfo("Perform 'Horizontal' Operation!");
-	m_image->applyHorTransform();
-	ShowImage();
-}
-
-void EditorWindow::OnVerticalButtonClicked(wxEvent& evt) {
-	if (!has_image) {
-		wxLogInfo("Perform 'Vertical' Operation with no Image!");
-		return;
-	}
-	wxLogInfo("Perform 'Vertical' Operation!");
-	m_image->applyVerTransform();
-	ShowImage();
-}
-
 void EditorWindow::OnQuantizedButtonClicked(wxEvent& evt) {
 	if (!has_image) {
 		wxLogInfo("Perform 'Quantize' Operation with no Image!");
 		return;
 	}
-	int amount = m_spin_quant->GetValue();
+	int amount = wxGetNumberFromUser(wxT(""),wxT("Please type in the number of colors (0-255):"), wxT("Quantize"),128,0,255); //m_spin_quant->GetValue();
+	if (amount == -1) return;
 	wxLogInfo("Perform 'Quantize' Operation with q=%d!", amount);
 	m_image->applyQuantTranform(amount);
 	ShowImage();
@@ -347,6 +358,26 @@ void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
 /*********************************************************/
 /*                   IMAGE TRANSFORM.                    */
 /*********************************************************/
+
+void EditorWindow::OnHorizontalButtonClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Horizontal' Operation with no Image!");
+		return;
+	}
+	wxLogInfo("Perform 'Horizontal' Operation!");
+	m_image->applyHorTransform();
+	ShowImage();
+}
+
+void EditorWindow::OnVerticalButtonClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Vertical' Operation with no Image!");
+		return;
+	}
+	wxLogInfo("Perform 'Vertical' Operation!");
+	m_image->applyVerTransform();
+	ShowImage();
+}
 
 void EditorWindow::OnRotateLeft(wxEvent& evt) {
 	wxLogInfo("Perform 'RotLeft' Operation!");
@@ -370,6 +401,7 @@ void EditorWindow::OnRotateRight(wxEvent& evt) {
 	}
 	ShowImage();
 }
+
 /*********************************************************/
 /*             CONVOLUTION TRANSFORM.                    */
 /*********************************************************/

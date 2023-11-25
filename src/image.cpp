@@ -40,16 +40,20 @@ void Image::makeWxView() {
 	bitmap = wxBitmap(Image, -1);
 }
 
-int Image::GetH() {
+int Image::GetH() const {
 	return h;
 }
 
-int Image::GetW() {
+int Image::GetW() const {
 	return w;
 }
 
-wxBitmap Image::GetWxBitmap() {
+wxBitmap Image::GetWxBitmap() const {
 	return bitmap;
+}
+
+cv::Mat& Image::GetMatrix() {
+	return matrix;
 }
 
 void Image::applyInvertTransform() {
@@ -293,5 +297,49 @@ cv::Vec3b& Image::at(int row, int col) {
 
 double get_luminance(int r, int g, int b) {
 	// NTSC formula for pixel intensity;
-	return 0.299 * r + 0.587 * g + 0.114 * b;
+	double ans = 0.299 * r + 0.587 * g + 0.114 * b;
+	if (ans < 0) ans = 0;
+	if (ans > 255) ans = 255;
+	return ans;
 }
+
+Histogram::Histogram(Image& image) : m_lum_hist(256, 0) {
+	m_n_pixels = image.GetW() * image.GetH();
+
+	cv::Mat& matrix = image.GetMatrix();
+	
+	for (int r = 0; r < matrix.rows; ++r) {
+		for (int c = 0; c < matrix.cols; ++c) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(r, c);
+
+			int lum = 0.5 + get_luminance(p[0], p[1], p[2]);
+			m_lum_hist[lum] += 1;
+		}
+	}
+	
+}
+
+Histogram::Histogram() : m_lum_hist(256, 0), m_n_pixels(0) {
+
+}
+
+int Histogram::GetNPixels() {
+	return m_n_pixels;
+}
+
+int Histogram::GetMaxValue() {
+	int max_val = 0;
+	for (int i = 0; i < 255; ++i) {
+		max_val = max_val > m_lum_hist[i] ? max_val : m_lum_hist[i];
+	}
+	return max_val;
+}
+
+std::vector<int> Histogram::GetLumHist() {
+	return m_lum_hist;
+}
+
+
+
+
+//	std::vector<int> m_lum_hist;

@@ -2,14 +2,7 @@
 
 KernelDialog::KernelDialog(EditorWindow* parent) : m_parent(parent),
 			wxDialog(parent, wxID_ANY, wxT("Kernel Customization"), wxDefaultPosition, wxDefaultSize){
-	
 	InitControls();
-
-	//EditorWindow* m_parent;
-	//wxSpinCtrl* m_bias_input;
-	//wxCheckBox* m_convertToGreyInput;
-	//wxSpinCtrlDouble* m_weightInputs[9];
-
 }
 
 void KernelDialog::InitControls() {
@@ -85,3 +78,9 @@ void KernelDialog::OnApplyKernelClicked(wxEvent & evt) {
 	}
 	m_parent->OnApplyConv(GetKernel());
 }
+
+
+/*********************************************************/
+/*                   HISTOGRAM DIALOG                    */
+/*********************************************************/
+

@@ -4,8 +4,10 @@
 #include <string>
 #include "wx.h"
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 typedef class Kernel Kernel;
+typedef class Histogram Histogram;
 
 class Image {
 private:
@@ -21,9 +23,10 @@ public:
 
 	void SaveAs(std::string filename);
 
-	wxBitmap GetWxBitmap();
-	int GetW();
-	int GetH();
+	wxBitmap GetWxBitmap() const;
+	cv::Mat& GetMatrix();
+	int GetW() const;
+	int GetH() const;
 
 	cv::Vec3b& at(int x, int y);
 
@@ -37,8 +40,21 @@ public:
 	void applyKernel(const Kernel & kernel);
 };
 
-
 double get_luminance(int r, int g, int b);
+
+class Histogram {
+public:
+	Histogram(Image& image);
+
+	int GetNPixels();
+	int GetMaxValue();
+	std::vector<int> GetLumHist();
+private:
+	Histogram();
+
+	std::vector<int> m_lum_hist;
+	int m_n_pixels;
+};
 
 enum KernelBorderBehaviour {
 	COPY_BORDER
