@@ -58,7 +58,7 @@ void KernelDialog::InitControls() {
 
 void KernelDialog::SetKernel(const Kernel& kernel) {
 	m_bias_input->SetValue(kernel.shift);
-
+	m_convert_to_grey_input->SetValue(false);
 	for (int r = 0; r < 3; ++r) {
 		for (int c = 0; c < 3; ++c) {
 			m_weight_inputs[r][c]->SetValue(kernel.weights[r][c]);
