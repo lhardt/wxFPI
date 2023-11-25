@@ -18,9 +18,30 @@ public:
 	virtual bool OnInit();
 };
 
+class EditorWindow;
+
+class KernelDialog : public wxDialog {
+public:
+	KernelDialog(EditorWindow* parent);
+
+	void SetKernel(const Kernel& kernel);
+	Kernel GetKernel();
+
+	void OnApplyKernelClicked(wxEvent& evt);
+private:
+	void InitControls();
+
+	EditorWindow* m_parent;
+	wxSpinCtrl* m_bias_input;
+	wxCheckBox* m_convert_to_grey_input;
+	wxSpinCtrlDouble* m_weight_inputs[3][3];
+};	
+
 class EditorWindow : public wxFrame {
 private:
 	Application* m_app;
+	KernelDialog* m_kernel_dialog;
+	int m_kernel_dialog_id = 0;
 	wxPanel* m_panel;
 	wxScrolledWindow * m_image_container;
 	wxStatusBar* m_status_bar;
@@ -41,6 +62,7 @@ private:
 	void InitMenuBar();
 	void InitControls();
 	void InitStatusBar();
+	void InitKernelDialog();
 	void ShowImage();
 public:
 	EditorWindow(Application * app);
@@ -64,9 +86,12 @@ public:
 	void OnGreyButtonClicked(wxEvent& evt);
 
 	/* Convolutions */
-	void OnShowConvClicked(wxEvent& evt);
-	void OnConv(const Kernel& kernel);
-
+	void OnShowConvWindow(wxEvent& evt);
+	bool IsUsingConvWindow();
+	void OpenConvWindow();
+	void OnApplyConv(const Kernel& kernel);
+	void OnConvMenuItem(const Kernel& kernel);
+	
 	void OnConvGauss(wxEvent& evt);
 	void OnConvLaplace(wxEvent& evt);
 	void OnConvHigh(wxEvent& evt);

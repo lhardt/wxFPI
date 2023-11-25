@@ -18,6 +18,7 @@ EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, APP_TITLE
 	InitMenuBar();
 	InitControls();
 	InitStatusBar();
+	InitKernelDialog();
 }
 
 void EditorWindow::InitControls() {
@@ -105,7 +106,7 @@ void EditorWindow::InitMenuBar() {
 		wxMenuItem* item_image_zoom_in2x = new wxMenuItem(menu_image, wxID_ANY, wxT("Zoom In (2x)"), wxT(" "));
 		wxMenuItem* item_image_zoom_out2x = new wxMenuItem(menu_image, wxID_ANY, wxT("Zoom Out (2x)"), wxT(" "));
 		wxMenuItem* item_image_rot_l = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Left\tCtrl+,"), wxT("Rotate the image to the left"));
-		wxMenuItem* item_image_rot_r = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Right\tCtrl+."), wxT("Rotate the image to the right"));
+		wxMenuItem* item_image_rot_r = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Right\tCtrl+.	"), wxT("Rotate the image to the right"));
 		wxMenuItem* item_image_flip_h = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Horizontally"), wxT("Flip the image horizontally"));
 		wxMenuItem* item_image_flip_v = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Vertically"), wxT("Flip the image vertically"));
 		wxMenuItem* item_image_reset = new wxMenuItem(menu_file, wxID_ANY, wxT("Reset\tCtrl+R"), wxT("Reset the image as originally loaded"));
@@ -123,6 +124,8 @@ void EditorWindow::InitMenuBar() {
 
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnRotateLeft, this, item_image_rot_l->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnRotateRight, this, item_image_rot_r->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnHorizontalButtonClicked, this, item_image_flip_h->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnVerticalButtonClicked, this, item_image_flip_v->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnResetButtonClicked, this, item_image_reset->GetId());
 
 		menu_bar->Append(menu_image, wxT("&Image"));
@@ -131,12 +134,17 @@ void EditorWindow::InitMenuBar() {
 	wxMenu* menu_color = new wxMenu();
 	{
 		wxMenuItem* item_color_histogram = new wxMenuItem(menu_color, wxID_ANY, wxT("Show Histogram"), wxT(" "));
+		wxMenuItem* item_color_brightness = new wxMenuItem(menu_color, wxID_ANY, wxT("Brightness Enh."), wxT(" "));
+		wxMenuItem* item_color_contrast = new wxMenuItem(menu_color, wxID_ANY, wxT("Contrast Enh."), wxT(" "));
 		wxMenuItem* item_color_invert = new wxMenuItem(menu_color, wxID_ANY, wxT("Invert Image"), wxT(" "));
 		wxMenuItem* item_color_grey = new wxMenuItem(menu_color, wxID_ANY, wxT("Convert to Greyscale"), wxT(" "));
 		wxMenuItem* item_color_equalize = new wxMenuItem(menu_color, wxID_ANY, wxT("Equalize Image"), wxT(" "));
 		wxMenuItem* item_color_match = new wxMenuItem(menu_color, wxID_ANY, wxT("Match Histogram"), wxT(" "));
 
 		menu_color->Append(item_color_histogram);
+		menu_color->AppendSeparator();
+		menu_color->Append(item_color_brightness);
+		menu_color->Append(item_color_contrast);
 		menu_color->AppendSeparator();
 		menu_color->Append(item_color_invert);
 		menu_color->Append(item_color_grey);
@@ -171,6 +179,7 @@ void EditorWindow::InitMenuBar() {
 		menu_conv->Append(item_conv_sobel_hx);
 		menu_conv->Append(item_conv_sobel_hy);
 
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnShowConvWindow, this, item_conv_show->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvGauss, this, item_conv_gauss->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvLaplace, this, item_conv_lapl->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnConvHigh, this, item_conv_high->GetId());
@@ -195,6 +204,12 @@ void EditorWindow::InitMenuBar() {
 	SetMenuBar(menu_bar);
 }
 
+void EditorWindow::InitKernelDialog() {
+	m_kernel_dialog = new KernelDialog(this);
+	m_kernel_dialog_id = m_kernel_dialog->GetId();
+
+}
+
 /*********************************************************/
 /*                       IMAGE I/O                       */
 /*********************************************************/
@@ -214,7 +229,6 @@ void EditorWindow::ShowImage() {
 	m_image_container->FitInside();
 	m_image_container->Thaw();
 }
-
 
 void EditorWindow::OnNewFileClicked(wxEvent&) {
 	wxLogInfo("New file!!");
@@ -360,17 +374,31 @@ void EditorWindow::OnRotateRight(wxEvent& evt) {
 /*             CONVOLUTION TRANSFORM.                    */
 /*********************************************************/
 
-void EditorWindow::OnShowConvClicked(wxEvent& evt) {
-
+void EditorWindow::OnShowConvWindow(wxEvent& evt) {
+	OpenConvWindow();
 }
 
-void EditorWindow::OnConv(const Kernel& kernel) {
+bool EditorWindow::IsUsingConvWindow() {
+	return m_kernel_dialog_id != 0 
+		&& wxWindow::FindWindowById(m_kernel_dialog_id) != NULL
+		&& m_kernel_dialog->IsVisible();
+}
+
+void EditorWindow::OpenConvWindow() {
+	if (m_kernel_dialog_id == 0 || wxWindow::FindWindowById(m_kernel_dialog_id) == NULL) {
+		m_kernel_dialog = new KernelDialog(this);
+		m_kernel_dialog_id = m_kernel_dialog->GetId();
+	}
+	m_kernel_dialog->Show();
+}
+
+void EditorWindow::OnApplyConv(const Kernel& kernel) {
 	if (!has_image) {
 		wxLogInfo("Perform 'Convolution' Operation with no Image!");
 		return;
 	}
-
 	try {
+		wxLogInfo("Applying Kernel to Image!");
 		m_image->applyKernel(kernel);
 	}
 	catch (std::exception& ex) {
@@ -379,25 +407,33 @@ void EditorWindow::OnConv(const Kernel& kernel) {
 	ShowImage();
 }
 
+void EditorWindow::OnConvMenuItem(const Kernel& kernel) {
+	if (IsUsingConvWindow()) {
+		wxLogInfo("Setting Kernel of the Convolution Dialog!");
+		m_kernel_dialog->SetKernel(kernel);
+	} else {
+		OnApplyConv(kernel);
+	}
+}
+
 void EditorWindow::OnConvGauss(wxEvent& evt) {
-	wxLogInfo("Performing 'Gaussian' convolution!");
-	this->OnConv(KERNEL_GAUSS);
+	this->OnConvMenuItem(KERNEL_GAUSS);
 }
 void EditorWindow::OnConvLaplace(wxEvent& evt) {
-	this->OnConv(KERNEL_LAPLACE);
+	this->OnConvMenuItem(KERNEL_LAPLACE);
 }
 void EditorWindow::OnConvHigh(wxEvent& evt) {
-	this->OnConv(KERNEL_HIGH);
+	this->OnConvMenuItem(KERNEL_HIGH);
 }
 void EditorWindow::OnConvPrewHx(wxEvent& evt) {
-	this->OnConv(KERNEL_PREW_HX);
+	this->OnConvMenuItem(KERNEL_PREW_HX);
 }
 void EditorWindow::OnConvPrewHy(wxEvent& evt) {
-	this->OnConv(KERNEL_PREW_HY);
+	this->OnConvMenuItem(KERNEL_PREW_HY);
 }
 void EditorWindow::OnConvSobelHx(wxEvent& evt) {
-	this->OnConv(KERNEL_SOBEL_HX);
+	this->OnConvMenuItem(KERNEL_SOBEL_HX);
 }
 void EditorWindow::OnConvSobelHy(wxEvent& evt) {
-	this->OnConv(KERNEL_SOBEL_HY);
+	this->OnConvMenuItem(KERNEL_SOBEL_HY);
 }
