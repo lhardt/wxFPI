@@ -30,13 +30,20 @@ public:
 
 	cv::Vec3b& at(int x, int y);
 
+	/* Color Transformations */
 	void applyInvertTransform();
 	void applyGreyTransform();
+	void applyQuantTranform(int n_tones);
+	void applyBrightnessEnh(double value);
+	void applyContrastEnh(double value);
+
+	/* Image Transformations */
 	void applyHorTransform();
 	void applyVerTransform();
 	void applyRotLeftTranform();
 	void applyRotRightTranform();
-	void applyQuantTranform(int n_tones);
+
+	/* Convolution */
 	void applyKernel(const Kernel & kernel);
 };
 

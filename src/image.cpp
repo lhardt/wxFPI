@@ -2,6 +2,10 @@
 
 #include <bitset>
 
+/*********************************************************/
+/*                    INITIALIZATION                     */
+/*********************************************************/
+
 Image::Image(int h, int w) : matrix(h, w, CV_8UC3, cv::Scalar(255,255,255)){
 	cv::Size sz = matrix.size();
 	this->w = sz.width;
@@ -56,6 +60,29 @@ cv::Mat& Image::GetMatrix() {
 	return matrix;
 }
 
+/*********************************************************/
+/*                         UTIL                         */
+/*********************************************************/
+
+double get_luminance(int r, int g, int b) {
+	// NTSC formula for pixel intensity;
+	double ans = 0.299 * r + 0.587 * g + 0.114 * b;
+	if (ans < 0) ans = 0;
+	if (ans > 255) ans = 255;
+	return ans;
+}
+
+uint8_t trunc_pixel(double pixel_value) {
+	if (pixel_value > 255) pixel_value = 255;
+	if (pixel_value < 0) pixel_value = 0;
+
+	return (uint8_t)(pixel_value + 0.5);
+}
+
+/*********************************************************/
+/*                   COLOR TRANSFORM.                    */
+/*********************************************************/
+
 void Image::applyInvertTransform() {
 	for (int i_row = 0; i_row < matrix.rows; i_row++) {
 		for (int i_col = 0; i_col < matrix.cols; i_col++) {
@@ -80,6 +107,88 @@ void Image::applyGreyTransform() {
 	}
 	makeWxView();
 }
+
+void Image::applyQuantTranform(int n_bins) {
+	std::bitset<256> has_shade;
+	has_shade.reset();
+	int n_shades = 0;
+
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+
+			if (!has_shade[p[0]]) {
+				has_shade[p[0]] = true;
+				n_shades++;
+			}
+		}
+	}
+
+	wxLogInfo("quant: The current image has %d shades!", n_shades);
+	wxLogInfo("quant: and we will compress it to %d !", n_bins);
+	// This prevents redundant work and edge case high==low.
+	if (n_shades <= n_bins) {
+		wxLogInfo("quant: Skipping! Less shades than bins. ", n_bins);
+		makeWxView();
+		return;
+	}
+
+	int low = 0, high = 255;
+	while (!has_shade[low] && low < 255) ++low;
+	while (!has_shade[high] && high > 0) --high;
+
+	int bin_size = (high - low + 1LL) / n_bins;
+	double bin_size_d = (high - low + 1) / (double)n_bins;
+	wxLogInfo("quant: bin size will be %lf !", bin_size_d);
+
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+
+			int pv = p[0];
+			// pv in [low .. low + bin_size - 1] goes to bin 0 
+			int pbin = (pv - low) / bin_size;
+
+			//                     int new_lum = ((l_low-1)+bin_size*(2*bin+1))/2;
+
+			double pintensity = low + pbin * bin_size_d;
+			if (pintensity > 255) pintensity = 255;
+
+			p[0] = p[1] = p[2] = (int)pintensity;
+		}
+	}
+	makeWxView();
+}
+
+void Image::applyBrightnessEnh(double  value){
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+			
+			p[0] = trunc_pixel((int)p[0] + value);
+			p[1] = trunc_pixel((int)p[1] + value);
+			p[2] = trunc_pixel((int)p[2] + value);
+		}
+	}
+	makeWxView();
+}
+
+void Image::applyContrastEnh(double value){
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+
+			p[0] = trunc_pixel((int)p[0] * value);
+			p[1] = trunc_pixel((int)p[1] * value);
+			p[2] = trunc_pixel((int)p[2] * value);
+		}
+	}
+	makeWxView();
+}
+
+/*********************************************************/
+/*                   IMAGE TRANSFORM.                    */
+/*********************************************************/
 
 void Image::applyHorTransform() {
 	for (int i_row = 0; i_row < matrix.rows; i_row++) {
@@ -127,6 +236,7 @@ void Image::applyRotLeftTranform() {
 
 	makeWxView();
 }
+
 void Image::applyRotRightTranform() {
 	cv::Mat new_image(cv::Size(matrix.rows, matrix.cols), CV_8UC3);
 
@@ -143,58 +253,9 @@ void Image::applyRotRightTranform() {
 	makeWxView();
 }
 
-
-void Image::applyQuantTranform(int n_bins) {
-	std::bitset<256> has_shade;
-	has_shade.reset();
-	int n_shades = 0;
-
-	for (int i_row = 0; i_row < matrix.rows; i_row++) {
-		for (int i_col = 0; i_col < matrix.cols; i_col++) {
-			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
-			
-			if (!has_shade[p[0]]) {
-				has_shade[p[0]] = true;
-				n_shades++;
-			}
-		}
-	}	
-
-	wxLogInfo("quant: The current image has %d shades!", n_shades);
-	wxLogInfo("quant: and we will compress it to %d !", n_bins);
-	// This prevents redundant work and edge case high==low.
-	if (n_shades <= n_bins) {
-		wxLogInfo("quant: Skipping! Less shades than bins. ", n_bins);
-		makeWxView();
-		return;
-	}
-
-	int low = 0, high = 255; 
-	while (!has_shade[low] && low < 255) ++low;
-	while (!has_shade[high] && high > 0) --high;
-
-	int bin_size = (high - low + 1LL) / n_bins;
-	double bin_size_d= (high - low + 1) / (double)n_bins;
-	wxLogInfo("quant: bin size will be %lf !", bin_size_d);
-
-	for (int i_row = 0; i_row < matrix.rows; i_row++) {
-		for (int i_col = 0; i_col < matrix.cols; i_col++) {
-			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
-
-			int pv = p[0];
-			// pv in [low .. low + bin_size - 1] goes to bin 0 
-			int pbin = (pv - low)/ bin_size;
-
-			//                     int new_lum = ((l_low-1)+bin_size*(2*bin+1))/2;
-
-			double pintensity = low + pbin * bin_size_d;
-			if (pintensity > 255) pintensity = 255;
-
-			p[0] = p[1] = p[2] = (int) pintensity;
-		}
-	}
-	makeWxView();
-}
+/*********************************************************/
+/*             CONVOLUTION TRANSFORM.                    */
+/*********************************************************/
 
 double Kernel::applyToPixelChannel(const Kernel& kernel,
 	uchar p00, uchar p01, uchar p02,
@@ -295,14 +356,6 @@ cv::Vec3b& Image::at(int row, int col) {
 	return matrix.at<cv::Vec3b>(row, col);
 }
 
-double get_luminance(int r, int g, int b) {
-	// NTSC formula for pixel intensity;
-	double ans = 0.299 * r + 0.587 * g + 0.114 * b;
-	if (ans < 0) ans = 0;
-	if (ans > 255) ans = 255;
-	return ans;
-}
-
 Histogram::Histogram(Image& image) : m_lum_hist(256, 0) {
 	m_n_pixels = image.GetW() * image.GetH();
 
@@ -338,8 +391,3 @@ int Histogram::GetMaxValue() {
 std::vector<int> Histogram::GetLumHist() {
 	return m_lum_hist;
 }
-
-
-
-
-//	std::vector<int> m_lum_hist;

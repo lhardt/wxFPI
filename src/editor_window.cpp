@@ -153,6 +153,8 @@ void EditorWindow::InitMenuBar() {
 		menu_color->Append(item_color_match);
 
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnShowHistogramWindow, this, item_color_histogram->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnBrightnessEnhclicked, this, item_color_brightness->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnContrastEnhclicked, this, item_color_contrast->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnInvertButtonClicked, this, item_color_invert->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnGreyButtonClicked, this, item_color_grey->GetId());
 
@@ -341,6 +343,29 @@ void EditorWindow::OnQuantizedButtonClicked(wxEvent& evt) {
 	m_image->applyQuantTranform(amount);
 	ShowImage();
 }
+
+void EditorWindow::OnBrightnessEnhclicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Brightness Enh' Operation with no Image!");
+		return;
+	}
+	int amount = wxGetNumberFromUser(wxT(""), wxT("Please type in the enhancement value:"), wxT("Brightness Enhancement"), 0, -255, 255); //m_spin_quant->GetValue();
+	if (amount == -1) return;
+	m_image->applyBrightnessEnh(amount);
+	ShowImage();
+}
+
+void EditorWindow::OnContrastEnhclicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Brightness Enh' Operation with no Image!");
+		return;
+	}
+	int amount = wxGetNumberFromUser(wxT(""), wxT("Please type in the enhancement value:"), wxT("Contrast Enhancement"), 0, -255, 255); //m_spin_quant->GetValue();
+	if (amount == -1) return;
+	m_image->applyContrastEnh(amount);
+	ShowImage();
+}
+
 
 void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
 	if (!has_image) {
