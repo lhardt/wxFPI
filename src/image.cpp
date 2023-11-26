@@ -186,6 +186,30 @@ void Image::applyContrastEnh(double value){
 	makeWxView();
 }
 
+void Image::applyEqualize() {
+	Histogram hist(*this);
+	std::vector<int> cum_hist = std::vector<int>(hist.GetLumHist());
+
+	for (int i = 1; i < 256; ++i) {
+		cum_hist[i] += cum_hist[i - 1];
+	}
+
+	for (int i_row = 0; i_row < matrix.rows; i_row++) {
+		for (int i_col = 0; i_col < matrix.cols; i_col++) {
+			cv::Vec3b& p = matrix.at<cv::Vec3b>(i_row, i_col);
+
+			int p_lum = trunc_pixel(get_luminance(p[0], p[1], p[2]));
+			double p_new_lum = cum_hist[p_lum] * 255.0 / cum_hist[255];
+
+			// TODO: change to LAB space and equalize with colors
+			p[0] = trunc_pixel(p[0] * p_new_lum / p_lum);
+			p[1] = trunc_pixel(p[1] * p_new_lum / p_lum);
+			p[2] = trunc_pixel(p[2] * p_new_lum / p_lum);
+		}
+	}
+	makeWxView();
+}
+
 /*********************************************************/
 /*                   IMAGE TRANSFORM.                    */
 /*********************************************************/

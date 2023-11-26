@@ -36,6 +36,7 @@ public:
 	void applyQuantTranform(int n_tones);
 	void applyBrightnessEnh(double value);
 	void applyContrastEnh(double value);
+	void applyEqualize();
 
 	/* Image Transformations */
 	void applyHorTransform();

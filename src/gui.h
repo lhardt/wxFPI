@@ -110,8 +110,9 @@ public:
 	void OnInvertButtonClicked(wxEvent& evt);
 	void OnQuantizedButtonClicked(wxEvent& evt);
 	void OnGreyButtonClicked(wxEvent& evt);
-	void OnBrightnessEnhclicked(wxEvent& evt);
-	void OnContrastEnhclicked(wxEvent& evt);
+	void OnBrightnessEnhClicked(wxEvent& evt);
+	void OnContrastEnhClicked(wxEvent& evt);
+	void OnEqualizeClicked(wxEvent& evt);
 
 	/* Convolutions */
 	void OnShowConvWindow(wxEvent& evt);

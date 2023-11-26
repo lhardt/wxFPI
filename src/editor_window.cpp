@@ -153,10 +153,12 @@ void EditorWindow::InitMenuBar() {
 		menu_color->Append(item_color_match);
 
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnShowHistogramWindow, this, item_color_histogram->GetId());
-		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnBrightnessEnhclicked, this, item_color_brightness->GetId());
-		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnContrastEnhclicked, this, item_color_contrast->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnBrightnessEnhClicked, this, item_color_brightness->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnContrastEnhClicked, this, item_color_contrast->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnInvertButtonClicked, this, item_color_invert->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnGreyButtonClicked, this, item_color_grey->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnEqualizeClicked, this, item_color_equalize->GetId());
+		item_color_match->Enable(false);
 
 		menu_bar->Append(menu_color, wxT("&Color"));
 	}
@@ -344,7 +346,7 @@ void EditorWindow::OnQuantizedButtonClicked(wxEvent& evt) {
 	ShowImage();
 }
 
-void EditorWindow::OnBrightnessEnhclicked(wxEvent& evt) {
+void EditorWindow::OnBrightnessEnhClicked(wxEvent& evt) {
 	if (!has_image) {
 		wxLogInfo("Perform 'Brightness Enh' Operation with no Image!");
 		return;
@@ -355,7 +357,7 @@ void EditorWindow::OnBrightnessEnhclicked(wxEvent& evt) {
 	ShowImage();
 }
 
-void EditorWindow::OnContrastEnhclicked(wxEvent& evt) {
+void EditorWindow::OnContrastEnhClicked(wxEvent& evt) {
 	if (!has_image) {
 		wxLogInfo("Perform 'Brightness Enh' Operation with no Image!");
 		return;
@@ -366,6 +368,14 @@ void EditorWindow::OnContrastEnhclicked(wxEvent& evt) {
 	ShowImage();
 }
 
+void EditorWindow::OnEqualizeClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Equalize' Operation with no Image!");
+		return;
+	}
+	m_image->applyEqualize();
+	ShowImage();
+}
 
 void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
 	if (!has_image) {
