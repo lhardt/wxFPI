@@ -61,7 +61,7 @@ cv::Mat& Image::GetMatrix() {
 }
 
 /*********************************************************/
-/*                         UTIL                         */
+/*                         UTIL                          */
 /*********************************************************/
 
 double get_luminance(int r, int g, int b) {
@@ -77,6 +77,30 @@ uint8_t trunc_pixel(double pixel_value) {
 	if (pixel_value < 0) pixel_value = 0;
 
 	return (uint8_t)(pixel_value + 0.5);
+}
+
+cv::Vec3b avg_pixel(cv::Vec3b p1, cv::Vec3b p2, cv::Vec3b p3, cv::Vec3b p4) {
+	cv::Vec3b result;
+
+	result[0] = trunc_pixel(((double)p1[0] + (double)p2[0] + (double)p3[0] + (double)p4[0]) / 4);
+	result[1] = trunc_pixel(((double)p1[1] + (double)p2[1] + (double)p3[1] + (double)p4[1]) / 4);
+	result[2] = trunc_pixel(((double)p1[2] + (double)p2[2] + (double)p3[2] + (double)p4[2]) / 4);
+	
+	return result;
+}
+
+cv::Vec3b avg_pixel(cv::Vec3b p1, cv::Vec3b p2) {
+	return avg_pixel(p1, p1, p2, p2);
+}
+
+cv::Vec3b change_luminance(cv::Vec3b p, double new_luminance) {
+	cv::Vec3b new_p;
+	// TODO: convert to LAB, change L value, and change back;
+	double lum = get_luminance(p[0], p[1], p[2]);
+	new_p[0] = trunc_pixel((double)p[0] * new_luminance / lum);
+	new_p[1] = trunc_pixel((double)p[1] * new_luminance / lum);
+	new_p[2] = trunc_pixel((double)p[2] * new_luminance / lum );
+	return new_p;
 }
 
 /*********************************************************/
@@ -188,11 +212,7 @@ void Image::applyContrastEnh(double value){
 
 void Image::applyEqualize() {
 	Histogram hist(*this);
-	std::vector<int> cum_hist = std::vector<int>(hist.GetLumHist());
-
-	for (int i = 1; i < 256; ++i) {
-		cum_hist[i] += cum_hist[i - 1];
-	}
+	std::vector<int> cum_hist = hist.GetCumulative();
 
 	for (int i_row = 0; i_row < matrix.rows; i_row++) {
 		for (int i_col = 0; i_col < matrix.cols; i_col++) {
@@ -205,6 +225,38 @@ void Image::applyEqualize() {
 			p[0] = trunc_pixel(p[0] * p_new_lum / p_lum);
 			p[1] = trunc_pixel(p[1] * p_new_lum / p_lum);
 			p[2] = trunc_pixel(p[2] * p_new_lum / p_lum);
+		}
+	}
+	makeWxView();
+}
+
+void Image::applyHistogram(Histogram& new_hist) {
+	Histogram cur_hist(*this);
+	
+	std::vector<int> cur_cum = cur_hist.GetCumulative();
+	std::vector<int> new_cum = new_hist.GetCumulative();
+
+	std::vector<int> new_shade(256, 0);
+
+	int i_new = 0;
+	// Try to match i_cur with some i_new
+	for (int i_cur = 0; i_cur < 256; ++i_cur) {
+		// Find closest new tone;
+		while (i_new < 255) {
+			int curr_dist = std::abs(cur_cum[i_cur] - new_cum[i_new]);
+			int next_dist = std::abs(cur_cum[i_cur] - new_cum[i_new + 1]);
+			if (next_dist < curr_dist) {
+				++i_new;
+			} else break;
+		}
+		new_shade[i_cur] = i_new;
+	}
+
+	for (int r = 0; r < h; ++r) {
+		for (int c = 0; c < w; ++c) {
+			cv::Vec3b& p = at(r, c);
+			int lum = trunc_pixel(get_luminance(p[0], p[1], p[2]));
+			p = change_luminance(p, new_shade[ lum ]);
 		}
 	}
 	makeWxView();
@@ -270,10 +322,51 @@ void Image::applyRotRightTranform() {
 			p = at(i_row, i_col);
 		}
 	}
-	wxLogInfo("new image has rows %d cols %d", new_image.rows, new_image.cols);
 	this->matrix = new_image;
 	int tmp = h;
 	h = w; w = tmp;
+	makeWxView();
+}
+
+void Image::applyZoomInTransform() {
+	int w = matrix.cols, h = matrix.rows;
+	cv::Mat new_image(cv::Size( 2 * w - 1, 2 * h - 1), CV_8UC3);
+
+	// Copy old pixels
+	for (int r = 0; r < h; ++r) {
+		for (int c = 0; c < w; ++c) {
+			cv::Vec3b& trg = new_image.at<cv::Vec3b>(2 * r, 2 * c);
+			trg = at(r, c);
+		}
+	}
+
+	// Fill in horizontals
+	for (int r = 0; r < h; ++r) {
+		for (int c = 0; c < w - 1; ++c) {
+			cv::Vec3b& trg = new_image.at<cv::Vec3b>(2 * r, 2 * c + 1);
+			trg = avg_pixel(at(r, c), at(r,c + 1));
+		}
+	}
+
+	// Fill in verticals
+	for (int r = 0; r < h - 1; ++r) {
+		for (int c = 0; c < w; ++c) {
+			cv::Vec3b& trg = new_image.at<cv::Vec3b>(2 * r + 1, 2 * c);
+			trg = avg_pixel(at(r, c), at(r + 1, c));
+		}
+	}
+
+	// Fill in corners
+	for (int r = 0; r < h - 1; ++r) {
+		for (int c = 0; c < w - 1; ++c) {
+			cv::Vec3b& trg = new_image.at<cv::Vec3b>(2 * r + 1, 2 * c + 1);
+			trg = avg_pixel(at(r, c), at(r + 1, c), at(r, c+1), at(r+1, c+1));
+		}
+	}
+
+	this->matrix = new_image;
+	this->w = 2 * w - 1;
+	this->h = 2 * h - 1;
 	makeWxView();
 }
 
@@ -414,4 +507,13 @@ int Histogram::GetMaxValue() {
 
 std::vector<int> Histogram::GetLumHist() {
 	return m_lum_hist;
+}
+
+std::vector<int> Histogram::GetCumulative() {
+	std::vector<int> cum_hist = std::vector<int>(m_lum_hist);
+
+	for (int i = 1; i < 256; ++i) {
+		cum_hist[i] += cum_hist[i - 1];
+	}
+	return cum_hist;
 }

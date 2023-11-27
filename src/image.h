@@ -37,13 +37,14 @@ public:
 	void applyBrightnessEnh(double value);
 	void applyContrastEnh(double value);
 	void applyEqualize();
+	void applyHistogram(Histogram& hist);
 
 	/* Image Transformations */
 	void applyHorTransform();
 	void applyVerTransform();
 	void applyRotLeftTranform();
 	void applyRotRightTranform();
-
+	void applyZoomInTransform();
 	/* Convolution */
 	void applyKernel(const Kernel & kernel);
 };
@@ -57,6 +58,7 @@ public:
 	int GetNPixels();
 	int GetMaxValue();
 	std::vector<int> GetLumHist();
+	std::vector<int> GetCumulative();
 private:
 	Histogram();
 

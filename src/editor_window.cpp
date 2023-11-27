@@ -94,10 +94,11 @@ void EditorWindow::InitMenuBar() {
 		menu_file->AppendSeparator();
 		menu_file->Append(item_file_exit);
 
-		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnOpenFileClicked, this, item_file_open->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnNewFileClicked, this, item_file_new->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnSaveImageClicked, this, item_file_save->GetId());
-
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnOpenFileClicked, this, item_file_open->GetId());
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnExitClicked, this, item_file_exit->GetId());
+		
 		menu_bar->Append(menu_file, wxT("&File"));
 	}
 
@@ -122,6 +123,8 @@ void EditorWindow::InitMenuBar() {
 		menu_image->AppendSeparator();
 		menu_image->Append(item_image_reset);
 
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnZoomIn, this, item_image_zoom_in2x->GetId());
+		item_image_zoom_out2x->Enable(false);
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnRotateLeft, this, item_image_rot_l->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnRotateRight, this, item_image_rot_r->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnHorizontalButtonClicked, this, item_image_flip_h->GetId());
@@ -158,7 +161,7 @@ void EditorWindow::InitMenuBar() {
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnInvertButtonClicked, this, item_color_invert->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnGreyButtonClicked, this, item_color_grey->GetId());
 		menu_bar->Bind(wxEVT_MENU, &EditorWindow::OnEqualizeClicked, this, item_color_equalize->GetId());
-		item_color_match->Enable(false);
+		menu_bar->Bind(wxEVT_MENU, &EditorWindow::onHistogramMatchClicked, this, item_color_match->GetId());
 
 		menu_bar->Append(menu_color, wxT("&Color"));
 	}
@@ -266,8 +269,28 @@ void EditorWindow::OnOpenFileClicked(wxEvent&) {
 	has_image = true;
 }
 
+void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
+	if (!has_image) {
+		wxLogInfo("Perform 'Reset' Operation with no Image!");
+		return;
+	}
+
+	wxLogInfo("Perform 'Reset' Operation!");
+	m_image.reset(); /* unique_ptr free method */
+	m_image = std::unique_ptr<Image>(new Image(*m_original_image));
+	ShowImage();
+
+}
+
 void EditorWindow::OnAboutClicked(wxEvent& evt) {
 	wxLogInfo("About!");
+	wxMessageDialog dialog(this, wxT(
+		"wxFPI Image Editor.\n\n"
+		"Image Special Effects Editor.\n"
+		"(c) 2023 Léo Hardt."
+	), wxT("About wxFPI"), wxOK);
+	dialog.ShowModal();
+
 }
 
 void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
@@ -283,6 +306,10 @@ void EditorWindow::OnSaveImageClicked(wxEvent& evt) {
 	wxString filename = dialog.GetPath();
 	m_image->SaveAs(filename.ToStdString());
 	wxLogInfo("Saved image as: <%s>!", filename);
+}
+
+void EditorWindow::OnExitClicked(wxEvent& evt) {
+	Close();
 }
 
 /*********************************************************/
@@ -377,17 +404,25 @@ void EditorWindow::OnEqualizeClicked(wxEvent& evt) {
 	ShowImage();
 }
 
-void EditorWindow::OnResetButtonClicked(wxEvent& evt) {
-	if (!has_image) {
-		wxLogInfo("Perform 'Reset' Operation with no Image!");
+void EditorWindow::onHistogramMatchClicked(wxEvent& evt) {
+	wxLogInfo("Open new file!");
+	wxFileDialog dialog(this, wxT("Select Image"), ".\\res", "test.png", "Image Files|*");
+	int result = dialog.ShowModal();
+
+	if (wxID_CANCEL == result) {
+		wxLogInfo("Canceled operation!");
 		return;
 	}
 
-	wxLogInfo("Perform 'Reset' Operation!");
-	m_image.reset(); /* unique_ptr free method */
-	m_image = std::unique_ptr<Image>(new Image(*m_original_image));
-	ShowImage();
+	wxString filename = dialog.GetPath();
+	wxLogInfo("Chosen file: <%s>!", filename);
+	Image image(filename.ToStdString());
+	Histogram histogram(image);
 
+	m_image->applyHistogram(histogram);
+
+	ShowImage();
+	has_image = true;
 }
 
 /*********************************************************/
@@ -430,6 +465,16 @@ void EditorWindow::OnRotateRight(wxEvent& evt) {
 	wxLogInfo("Perform 'RotRight' Operation!");
 	try {
 		m_image->applyRotRightTranform();
+	}
+	catch (std::exception& ex) {
+		wxLogError("Exception! %s", ex.what());
+	}
+	ShowImage();
+}
+
+void EditorWindow::OnZoomIn(wxEvent& evt) {
+	try {
+		m_image->applyZoomInTransform();
 	}
 	catch (std::exception& ex) {
 		wxLogError("Exception! %s", ex.what());

@@ -91,6 +91,7 @@ public:
 	void OnOpenFileClicked(wxEvent& evt);
 	void OnSaveImageClicked(wxEvent& evt);
 	void OnNewFileClicked(wxEvent& evt);
+	void OnExitClicked(wxEvent& evt);
 	void OnAboutClicked(wxEvent& evt);
 	void OnResetButtonClicked(wxEvent& evt);
 
@@ -99,6 +100,7 @@ public:
 	void OnHorizontalButtonClicked(wxEvent& evt);
 	void OnRotateLeft(wxEvent& evt);
 	void OnRotateRight(wxEvent& evt);
+	void OnZoomIn(wxEvent& evt);
 
 	/* Histogram Window */
 	void OnShowHistogramWindow(wxEvent& evt);
@@ -113,6 +115,7 @@ public:
 	void OnBrightnessEnhClicked(wxEvent& evt);
 	void OnContrastEnhClicked(wxEvent& evt);
 	void OnEqualizeClicked(wxEvent& evt);
+	void onHistogramMatchClicked(wxEvent& evt);
 
 	/* Convolutions */
 	void OnShowConvWindow(wxEvent& evt);
