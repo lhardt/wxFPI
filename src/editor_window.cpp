@@ -389,8 +389,12 @@ void EditorWindow::OnContrastEnhClicked(wxEvent& evt) {
 		wxLogInfo("Perform 'Brightness Enh' Operation with no Image!");
 		return;
 	}
-	int amount = wxGetNumberFromUser(wxT(""), wxT("Please type in the enhancement value:"), wxT("Contrast Enhancement"), 0, -255, 255); //m_spin_quant->GetValue();
-	if (amount == -1) return;
+	double amount = 0;
+	wxString amount_text = wxGetTextFromUser(wxT(""), wxT("Please type in the enhancement value:"), wxT("Contrast Enhancement"));
+	if (!amount_text.ToCDouble(&amount)) {
+		wxLogInfo("Invalid Contrast Enh. Value! <%s>", amount_text);
+		return;
+	}
 	m_image->applyContrastEnh(amount);
 	ShowImage();
 }

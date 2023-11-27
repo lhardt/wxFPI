@@ -233,8 +233,8 @@ void Image::applyEqualize() {
 void Image::applyHistogram(Histogram& new_hist) {
 	Histogram cur_hist(*this);
 	
-	std::vector<int> cur_cum = cur_hist.GetCumulative();
-	std::vector<int> new_cum = new_hist.GetCumulative();
+	std::vector<double> cur_cum = cur_hist.GetRelCumulative();
+	std::vector<double> new_cum = new_hist.GetRelCumulative();
 
 	std::vector<int> new_shade(256, 0);
 
@@ -243,9 +243,9 @@ void Image::applyHistogram(Histogram& new_hist) {
 	for (int i_cur = 0; i_cur < 256; ++i_cur) {
 		// Find closest new tone;
 		while (i_new < 255) {
-			int curr_dist = std::abs(cur_cum[i_cur] - new_cum[i_new]);
-			int next_dist = std::abs(cur_cum[i_cur] - new_cum[i_new + 1]);
-			if (next_dist < curr_dist) {
+			double curr_dist = std::abs(cur_cum[i_cur] - new_cum[i_new]);
+			double next_dist = std::abs(cur_cum[i_cur] - new_cum[i_new + 1]);
+			if (next_dist <= curr_dist) {
 				++i_new;
 			} else break;
 		}
@@ -513,6 +513,16 @@ std::vector<int> Histogram::GetCumulative() {
 	std::vector<int> cum_hist = std::vector<int>(m_lum_hist);
 
 	for (int i = 1; i < 256; ++i) {
+		cum_hist[i] += cum_hist[i - 1];
+	}
+	return cum_hist;
+}
+std::vector<double> Histogram::GetRelCumulative() {
+	std::vector<double> cum_hist = std::vector<double>(256, 0);
+
+	cum_hist[0] = m_lum_hist[0] / (double)GetNPixels();
+	for (int i = 1; i < 256; ++i) {
+		cum_hist[i] += m_lum_hist[i] / (double)GetNPixels();
 		cum_hist[i] += cum_hist[i - 1];
 	}
 	return cum_hist;

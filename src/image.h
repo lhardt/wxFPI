@@ -59,6 +59,7 @@ public:
 	int GetMaxValue();
 	std::vector<int> GetLumHist();
 	std::vector<int> GetCumulative();
+	std::vector<double> GetRelCumulative();
 private:
 	Histogram();
 
