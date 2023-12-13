@@ -27,6 +27,7 @@ public:
 	void refreshWxView();
 	wxBitmap GetWxBitmap() const;
 	cv::Mat& GetMatrix();
+	void SetMatrix(const cv::Mat &mat);
 	int GetW() const;
 	int GetH() const;
 
@@ -54,12 +55,6 @@ public:
 };
 
 double get_luminance(int r, int g, int b);
-
-class Effect {
-public:
-	virtual void applyToImage(Image& image) = 0;
-	std::string describe();
-};
 
 class Histogram {
 public:

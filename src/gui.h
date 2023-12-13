@@ -194,6 +194,25 @@ public:
 	void OnHorizontalButtonClicked(wxEvent& evt);
 	void OnRotateLeft(wxEvent& evt);
 	void OnRotateRight(wxEvent& evt);
+	void OnZoomOutEffect(wxEvent& evt);
+	void OnZoomInEffect(wxEvent& evt);
+	void OnResizeEffect(wxEvent& evt);
+	
+
+	/* Color Transforms */
+	void OnBrightnessEnhClicked(wxEvent& evt);
+	void OnContrastEnhClicked(wxEvent& evt);
+	void OnInvertButtonClicked(wxEvent& evt);
+	void OnGreyButtonClicked(wxEvent& evt);
+	void OnEqualizeClicked(wxEvent& evt);
+
+
+	/* OpenCV Transformations*/
+	void OnGaussianEffect(wxEvent& evt);
+	void OnCannyEffect(wxEvent& evt);
+	void OnSobelEffect(wxEvent& evt);
+	void OnGreyscaleEffect(wxEvent& evt);
+
 
 	/* General Effects */
 	void OnClearEffectStack(wxEvent& evt);

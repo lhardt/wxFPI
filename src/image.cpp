@@ -67,6 +67,13 @@ cv::Mat& Image::GetMatrix() {
 	return matrix;
 }
 
+void Image::SetMatrix(const cv::Mat &_matrix) {
+	_matrix.copyTo(matrix);
+	cv::Size sz = matrix.size();
+	this->w = sz.width;
+	this->h = sz.height;
+	
+}
 /*********************************************************/
 /*                         UTIL                          */
 /*********************************************************/
@@ -531,8 +538,4 @@ std::vector<double> Histogram::GetRelCumulative() {
 		cum_hist[i] += cum_hist[i - 1];
 	}
 	return cum_hist;
-}
-
-std::string Effect::describe() {
-	return "Empty description.";
 }
