@@ -107,7 +107,7 @@ void EditorWindow::InitMenuBar() {
 		wxMenuItem* item_image_rot_r = new wxMenuItem(menu_image, wxID_ANY, wxT("Rotate Right\tCtrl+.	"), wxT("Rotate the image to the right"));
 		wxMenuItem* item_image_flip_h = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Horizontally"), wxT("Flip the image horizontally"));
 		wxMenuItem* item_image_flip_v = new wxMenuItem(menu_image, wxID_ANY, wxT("Flip Vertically"), wxT("Flip the image vertically"));
-		wxMenuItem* item_image_reset = new wxMenuItem(menu_file, wxID_ANY, wxT("Reset\tCtrl+R"), wxT("Reset the image as originally loaded"));
+		wxMenuItem* item_image_reset = new wxMenuItem(menu_image, wxID_ANY, wxT("Reset\tCtrl+R"), wxT("Reset the image as originally loaded"));
 
 		menu_image->Append(item_image_zoom_in2x);
 		menu_image->Append(item_image_zoom_out2x);

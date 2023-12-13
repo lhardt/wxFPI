@@ -10,7 +10,7 @@ Image::Image(int h, int w) : matrix(h, w, CV_8UC3, cv::Scalar(255,255,255)){
 	cv::Size sz = matrix.size();
 	this->w = sz.width;
 	this->h = sz.height;
-	makeWxView();
+	refreshWxView();
 }
 
 Image::Image(std::string filename)  {
@@ -25,26 +25,26 @@ Image::Image(std::string filename)  {
 	cv::Size sz = matrix.size();
 	this->w = sz.width;
 	this->h = sz.height;
-	makeWxView();
+	refreshWxView();
 }
 
 Image::Image(const Image& other) : matrix(other.matrix.size(), other.matrix.type()), w(other.w), h(other.h) {
 	other.matrix.copyTo(matrix);
-	makeWxView();
+	refreshWxView();
 }
 
 Image::Image(cv::Mat _matrix) : matrix(_matrix) {
 	cv::Size sz = matrix.size();
 	this->w = sz.width;
 	this->h = sz.height;
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::SaveAs(std::string filename) {
 	cv::imwrite(filename, this->matrix);
 }
 
-void Image::makeWxView() {
+void Image::refreshWxView() {
 	cv::Mat matrix_bgr;
 	cv::cvtColor(matrix, matrix_bgr, cv::COLOR_RGB2BGR);
 	wxImage Image(w, h, matrix_bgr.data, TRUE);
@@ -124,7 +124,7 @@ void Image::applyInvertTransform() {
 			p[2] = 255 - p[2];
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyGreyTransform() {
@@ -136,7 +136,7 @@ void Image::applyGreyTransform() {
 			p[0] = p[1] = p[2] = (uchar) lum;
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyQuantTranform(int n_bins) {
@@ -160,7 +160,7 @@ void Image::applyQuantTranform(int n_bins) {
 	// This prevents redundant work and edge case high==low.
 	if (n_shades <= n_bins) {
 		wxLogInfo("quant: Skipping! Less shades than bins. ", n_bins);
-		makeWxView();
+		refreshWxView();
 		return;
 	}
 
@@ -188,7 +188,7 @@ void Image::applyQuantTranform(int n_bins) {
 			p[0] = p[1] = p[2] = (int)pintensity;
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyBrightnessEnh(double  value){
@@ -201,7 +201,7 @@ void Image::applyBrightnessEnh(double  value){
 			p[2] = trunc_pixel((int)p[2] + value);
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyContrastEnh(double value){
@@ -214,7 +214,7 @@ void Image::applyContrastEnh(double value){
 			p[2] = trunc_pixel((int)p[2] * value);
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyEqualize() {
@@ -234,7 +234,7 @@ void Image::applyEqualize() {
 			p[2] = trunc_pixel(p[2] * p_new_lum / p_lum);
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyHistogram(Histogram& new_hist) {
@@ -266,7 +266,7 @@ void Image::applyHistogram(Histogram& new_hist) {
 			p = change_luminance(p, new_shade[ lum ]);
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 /*********************************************************/
@@ -284,7 +284,7 @@ void Image::applyHorTransform() {
 			swap(p1, p2);
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyVerTransform() {
@@ -298,7 +298,7 @@ void Image::applyVerTransform() {
 			swap(p1, p2);
 		}
 	}
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyRotLeftTranform() {
@@ -317,7 +317,7 @@ void Image::applyRotLeftTranform() {
 	int tmp = h; 
 	h = w; w = tmp;
 
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyRotRightTranform() {
@@ -332,7 +332,7 @@ void Image::applyRotRightTranform() {
 	this->matrix = new_image;
 	int tmp = h;
 	h = w; w = tmp;
-	makeWxView();
+	refreshWxView();
 }
 
 void Image::applyZoomInTransform() {
@@ -374,7 +374,7 @@ void Image::applyZoomInTransform() {
 	this->matrix = new_image;
 	this->w = 2 * w - 1;
 	this->h = 2 * h - 1;
-	makeWxView();
+	refreshWxView();
 }
 
 /*********************************************************/
@@ -473,7 +473,7 @@ void Image::applyKernel(const Kernel& kernel) {
 	}
 	this->matrix = temp;
 
-	makeWxView();
+	refreshWxView();
 }
 
 cv::Vec3b& Image::at(int row, int col) {
@@ -533,4 +533,8 @@ std::vector<double> Histogram::GetRelCumulative() {
 		cum_hist[i] += cum_hist[i - 1];
 	}
 	return cum_hist;
+}
+
+std::string Effect::describe() {
+	return "Empty description.";
 }

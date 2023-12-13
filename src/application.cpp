@@ -5,27 +5,37 @@
  * (C) 2023 Léo Hardt <leom.hardt@gmail.com>.
  */
 #include "gui.h"
-//#include <opencv2/opencv.hpp>
 #include <iostream>
 
 bool Application::OnInit() {
 	InitLogging();
 	// InitEditorWindow();
-	InitVideoWindow();
+	CreateVideoWindow();
 	return true;
 }
-void Application::InitEditorWindow() {
-	EditorWindow* window = new EditorWindow(this);
-	window->SetPosition(wxPoint(20, 20));
-	window->Show();
-	SetTopWindow(window);
+bool Application::OnExceptionInMainLoop() {
+	try { throw; }
+	catch (std::exception& e)
+	{
+		wxLogInfo("Unhandled Exception!");
+		wxLogInfo(e.what());
+		wxString text = wxString("Unhandled Exception!\n\n") + e.what();
+		wxMessageDialog dialog(NULL, text, wxT("Unhandled Exception!"), wxOK);
+		dialog.ShowModal();
+	}
+	return true;   // continue on. Return false to abort program
 }
 
-void Application::InitVideoWindow() {
-	VideoWindow* window = new VideoWindow(this);
-	window->SetPosition(wxPoint(20, 20));
+void Application::CreateEditorWindow() {
+	EditorWindow* window = new EditorWindow(this);
+//	window->SetPosition(wxPoint(20, 20));
 	window->Show();
-	SetTopWindow(window);
+}
+
+void Application::CreateVideoWindow() {
+	VideoWindow* window = new VideoWindow(this, &m_video_capture);
+//	window->SetPosition(wxPoint(20, 20));
+	window->Show();
 }
 
 void Application::InitLogging() {

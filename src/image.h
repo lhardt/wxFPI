@@ -8,6 +8,7 @@
 
 typedef class Kernel Kernel;
 typedef class Histogram Histogram;
+typedef class Effect Effect;
 
 class Image {
 private:
@@ -15,7 +16,6 @@ private:
 	wxBitmap bitmap;
 	int w, h;
 
-	void makeWxView();
 public:
 	Image(std::string filename);
 	Image(cv::Mat matrix);
@@ -24,12 +24,15 @@ public:
 
 	void SaveAs(std::string filename);
 
+	void refreshWxView();
 	wxBitmap GetWxBitmap() const;
 	cv::Mat& GetMatrix();
 	int GetW() const;
 	int GetH() const;
 
 	cv::Vec3b& at(int x, int y);
+
+	void applyEffect(Effect* effect, bool updateView = false);
 
 	/* Color Transformations */
 	void applyInvertTransform();
@@ -51,6 +54,12 @@ public:
 };
 
 double get_luminance(int r, int g, int b);
+
+class Effect {
+public:
+	virtual void applyToImage(Image& image) = 0;
+	std::string describe();
+};
 
 class Histogram {
 public:

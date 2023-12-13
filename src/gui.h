@@ -18,10 +18,14 @@ class VideoWindow;
 class Application : public wxApp {
 private:
 	void InitLogging();
-	void InitEditorWindow();
-	void InitVideoWindow();
+
+	cv::VideoCapture m_video_capture;
 public:
+	void CreateEditorWindow();
+	void CreateVideoWindow();
+
 	virtual bool OnInit();
+	virtual bool OnExceptionInMainLoop() override;
 };
 
 class KernelDialog : public wxDialog {
@@ -152,21 +156,45 @@ private:
 	Application* m_app;
 
 	int m_refresh_rate_ms;
-	cv::VideoCapture m_video_source;
+	cv::VideoCapture * m_video_source;
 	Image m_image;
 	bool m_opened;
 
 	wxWindow* m_image_container;
+	wxStatusBar* m_status_bar;
 	wxTimer m_refresh_timer;
+
+	std::vector<std::unique_ptr<Effect>> m_effect_stack;
 
 	void InitLayout();
 	void InitCamera();
+	void InitMenuBar();
+	void InitStatusBar();
 public: 
-	VideoWindow(Application * app);
+	VideoWindow(Application* app, cv::VideoCapture * vc, wxString window_name = APP_TITLE);
 
+	/* Utils */
+	void UpdateStatusBarText();
+	void AddEffect(Effect* eff);
+	void OnClosing(wxEvent& evt);
+
+	/* Main Drawing Cycle */
 	void GetNextFrame();
+	void ApplyEffects();
 	void OnTimerRefresh(wxEvent& evt);
 	void OnPaintImage(wxEvent& evt);
+
+	/***************************
+	 * User Interface Handlers *
+ 	 ***************************/
+	void OnNewWindowClicked(wxEvent& evt);
+
+	/* Image Transformations */
+	void OnVerticalButtonClicked(wxEvent& evt);
+	void OnHorizontalButtonClicked(wxEvent& evt);
+
+	/* General Effects */
+	void OnClearEffectStack(wxEvent& evt);
 };
 
 
