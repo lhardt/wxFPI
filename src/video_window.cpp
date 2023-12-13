@@ -56,8 +56,8 @@ void VideoWindow::InitMenuBar() {
 
 		//menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnZoomIn, this, item_image_zoom_in2x->GetId());
 		//item_image_zoom_out2x->Enable(false);
-		//menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnRotateLeft, this, item_image_rot_l->GetId());
-		//menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnRotateRight, this, item_image_rot_r->GetId());
+		menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnRotateLeft, this, item_image_rot_l->GetId());
+		menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnRotateRight, this, item_image_rot_r->GetId());
 		menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnHorizontalButtonClicked, this, item_image_flip_h->GetId());
 		menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnVerticalButtonClicked, this, item_image_flip_v->GetId());
 		menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnClearEffectStack, this, item_image_clear->GetId());
@@ -136,6 +136,14 @@ void VideoWindow::ApplyEffects() {
 	for (auto& eff : m_effect_stack) {
 		eff->applyToImage(m_image);
 	}
+	wxSize oldSize = m_image_container->GetMinSize();
+	m_image_container->SetMinSize(wxSize(m_image.GetW(), m_image.GetH()));
+	m_image_container->SetMaxSize(wxSize(m_image.GetW(), m_image.GetH()));
+	wxSize newSize = m_image_container->GetMinSize();
+	
+	if (oldSize != newSize) {
+		Layout();
+	}
 	m_image.refreshWxView();
 }
 
@@ -153,6 +161,12 @@ void VideoWindow::OnVerticalButtonClicked(wxEvent& evt) {
 	AddEffect(new VerticalEffect());
 }
 
+void VideoWindow::OnRotateLeft(wxEvent& evt) {
+	AddEffect(new LeftRotationEffect());
+}
+void VideoWindow::OnRotateRight(wxEvent& evt) {
+	AddEffect(new RightRotationEffect());
+}
 
 void VideoWindow::UpdateStatusBarText() {
 	int fps = 1000 / m_refresh_rate_ms;

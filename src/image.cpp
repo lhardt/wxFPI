@@ -306,12 +306,10 @@ void Image::applyRotLeftTranform() {
 
 	for (int i_row = 0; i_row < matrix.rows; ++i_row) {
 		for (int i_col = 0; i_col < matrix.cols; ++i_col) {
-			cv::Vec3b& p = new_image.at<cv::Vec3b>(matrix.cols - 1 - i_col, i_row); //(i_col, /**/ i_row);
+			cv::Vec3b& p = new_image.at<cv::Vec3b>(matrix.cols - 1 - i_col, i_row);
 			p = at(i_row, i_col);
 		}
 	}
-
-	wxLogInfo("new image has rows %d cols %d", new_image.rows, new_image.cols);
 
 	this->matrix = new_image;
 	int tmp = h; 

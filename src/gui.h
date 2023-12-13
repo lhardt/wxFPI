@@ -192,6 +192,8 @@ public:
 	/* Image Transformations */
 	void OnVerticalButtonClicked(wxEvent& evt);
 	void OnHorizontalButtonClicked(wxEvent& evt);
+	void OnRotateLeft(wxEvent& evt);
+	void OnRotateRight(wxEvent& evt);
 
 	/* General Effects */
 	void OnClearEffectStack(wxEvent& evt);
