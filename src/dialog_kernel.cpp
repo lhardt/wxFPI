@@ -78,9 +78,3 @@ void KernelDialog::OnApplyKernelClicked(wxEvent & evt) {
 	}
 	m_parent->OnApplyConv(GetKernel());
 }
-
-
-/*********************************************************/
-/*                   HISTOGRAM DIALOG                    */
-/*********************************************************/
-

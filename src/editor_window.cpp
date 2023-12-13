@@ -6,14 +6,11 @@
  */
 #include "gui.h"
 
-static const wxString APP_TITLE = "wxFPI Image Editor";
-
 /*********************************************************/
 /*                    INITIALIZATION                     */
 /*********************************************************/
 
 EditorWindow::EditorWindow(Application* app) : wxFrame(NULL, wxID_ANY, APP_TITLE, wxDefaultPosition, wxSize(500,500)) {
-	// SetBackgroundColour(wxColor("#2D2D30"));
 	has_image = false;
 	InitMenuBar();
 	InitControls();

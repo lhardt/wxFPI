@@ -18,6 +18,7 @@ private:
 	void makeWxView();
 public:
 	Image(std::string filename);
+	Image(cv::Mat matrix);
 	Image(const Image& other);
 	Image(int h, int w);
 

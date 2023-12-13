@@ -33,6 +33,13 @@ Image::Image(const Image& other) : matrix(other.matrix.size(), other.matrix.type
 	makeWxView();
 }
 
+Image::Image(cv::Mat _matrix) : matrix(_matrix) {
+	cv::Size sz = matrix.size();
+	this->w = sz.width;
+	this->h = sz.height;
+	makeWxView();
+}
+
 void Image::SaveAs(std::string filename) {
 	cv::imwrite(filename, this->matrix);
 }

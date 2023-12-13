@@ -8,17 +8,21 @@
 #define WXFPI_GUI_H
 
 #include "wx.h"
+#include "const.h"
 
 #include "image.h"
+
+class EditorWindow;
+class VideoWindow;
 
 class Application : public wxApp {
 private:
 	void InitLogging();
+	void InitEditorWindow();
+	void InitVideoWindow();
 public:
 	virtual bool OnInit();
 };
-
-class EditorWindow;
 
 class KernelDialog : public wxDialog {
 public:
@@ -53,6 +57,11 @@ private:
 	wxBitmap m_bitmap;
 };
 
+/** 
+ * EditorWindow
+ * 
+ * Window control to load, add effects and save a static image.
+ */
 class EditorWindow : public wxFrame {
 private:
 	Application* m_app;
@@ -132,6 +141,33 @@ public:
 	void OnConvSobelHx(wxEvent& evt);
 	void OnConvSobelHy(wxEvent& evt);
 };
+
+/**
+ * VideoWindow
+ *
+ * Window control to load, add effects and save a static image.
+ */
+class VideoWindow : public wxFrame {
+private:
+	Application* m_app;
+
+	int m_refresh_rate_ms;
+	wxScrolledWindow* m_image_container;
+	cv::VideoCapture m_video_source;
+	Image m_image;
+	bool m_opened;
+
+	wxTimer m_refresh_timer;
+
+public: 
+	VideoWindow(Application * app);
+
+	void GetNextFrame();
+	void ShowImage();
+	void OnTimerRefresh(wxEvent& evt);
+};
+
+
 
 
 #endif /* WXFPI_GUI_H */

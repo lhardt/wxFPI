@@ -10,13 +10,22 @@
 
 bool Application::OnInit() {
 	InitLogging();
-
-	EditorWindow * window = new EditorWindow(this);
+	// InitEditorWindow();
+	InitVideoWindow();
+	return true;
+}
+void Application::InitEditorWindow() {
+	EditorWindow* window = new EditorWindow(this);
 	window->SetPosition(wxPoint(20, 20));
 	window->Show();
 	SetTopWindow(window);
+}
 
-	return true;
+void Application::InitVideoWindow() {
+	VideoWindow* window = new VideoWindow(this);
+	window->SetPosition(wxPoint(20, 20));
+	window->Show();
+	SetTopWindow(window);
 }
 
 void Application::InitLogging() {
