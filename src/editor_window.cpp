@@ -40,7 +40,7 @@ void EditorWindow::InitControls() {
 	//m_spin_quant->SetMax(255);
 
 	m_image_container = new wxScrolledWindow(m_panel, wxID_ANY);
-	m_image_container->SetBackgroundColour(wxColor("#2D2D30"));
+	m_image_container->SetBackgroundColour(wxColor(BKG_COLOR));
 		
 	wxSizer* root_sizer = new wxBoxSizer(wxHORIZONTAL);
 	wxSizer* controls_sizer = new wxBoxSizer(wxVERTICAL);

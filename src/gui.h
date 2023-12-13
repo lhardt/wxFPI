@@ -152,19 +152,21 @@ private:
 	Application* m_app;
 
 	int m_refresh_rate_ms;
-	wxScrolledWindow* m_image_container;
 	cv::VideoCapture m_video_source;
 	Image m_image;
 	bool m_opened;
 
+	wxWindow* m_image_container;
 	wxTimer m_refresh_timer;
 
+	void InitLayout();
+	void InitCamera();
 public: 
 	VideoWindow(Application * app);
 
 	void GetNextFrame();
-	void ShowImage();
 	void OnTimerRefresh(wxEvent& evt);
+	void OnPaintImage(wxEvent& evt);
 };
 
 
