@@ -188,6 +188,7 @@ public:
 	 * User Interface Handlers *
  	 ***************************/
 	void OnNewWindowClicked(wxEvent& evt);
+	void OnSaveImageClicked(wxEvent& evt);
 
 	/* Image Transformations */
 	void OnVerticalButtonClicked(wxEvent& evt);

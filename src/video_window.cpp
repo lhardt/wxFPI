@@ -24,11 +24,13 @@ void VideoWindow::InitMenuBar() {
 	{
 		wxMenu* menu_file = new wxMenu();
 		wxMenuItem* item_file_new = new wxMenuItem(menu_file, wxID_ANY, wxT("New Window\tCtrl+N"), wxT("Create a new file to edit"));
+		wxMenuItem* item_file_save = new wxMenuItem(menu_file, wxID_ANY, wxT("Save Image\tCtrl+N"), wxT("Save the current image to a file."));
 
 		menu_file->Append(item_file_new);
+		menu_file->Append(item_file_save);
 
 		menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnNewWindowClicked, this, item_file_new->GetId());
-		//menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnSaveImageClicked, this, item_file_save->GetId());
+		menu_bar->Bind(wxEVT_MENU, &VideoWindow::OnSaveImageClicked, this, item_file_save->GetId());
 
 		menu_bar->Append(menu_file, wxT("&File"));
 	}
@@ -111,6 +113,10 @@ void VideoWindow::InitMenuBar() {
 		menu_bar->Append(menu_conv, wxT("&Convolution"));
 	}
 
+	{
+		wxMenu* menu_rec = new wxMenu();
+		menu_bar->Append(menu_rec, wxT("&Recording"));
+	}
 
 	
 	SetMenuBar(menu_bar);
@@ -251,7 +257,7 @@ void VideoWindow::OnResizeEffect(wxEvent& evt) {
 void VideoWindow::OnBrightnessEnhClicked(wxEvent& evt) {
 	int x = wxGetNumberFromUser(wxT(""), wxT("Please type in the enhancement value:"), wxT("Brightness Enhancement"), 0, -255, 255);
 	if (x == -1) return; // TODO: how to distinguish input -1
-	AddEffect(new LinearEffect(0, x));
+	AddEffect(new LinearEffect(1, x));
 }
 void VideoWindow::OnContrastEnhClicked(wxEvent& evt) {
 	int x = wxGetNumberFromUser(wxT(""), wxT("Please type in the enhancement value:"), wxT("Contrast Enhancement"), 0, -255, 255);
@@ -313,4 +319,21 @@ void VideoWindow::OnClosing(wxEvent & evt) {
 void VideoWindow::OnClearEffectStack(wxEvent& evt) {
 	m_effect_stack.clear();
 	UpdateStatusBarText();
+}
+
+
+
+void VideoWindow::OnSaveImageClicked(wxEvent& evt) {
+	wxLogInfo("Save!");
+	wxFileDialog dialog(this, wxT("Save As"), ".\\res", "result.png", "Image Files|*");
+	int result = dialog.ShowModal();
+
+	if (wxID_CANCEL == result) {
+		wxLogInfo("Canceled operation!");
+		return;
+	}
+
+	wxString filename = dialog.GetPath();
+	m_image.SaveAs(filename.ToStdString());
+	wxLogInfo("Saved image as: <%s>!", filename);
 }

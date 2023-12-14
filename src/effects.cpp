@@ -8,22 +8,41 @@ wxString Effect::describe() {
 void HorizontalEffect::applyToImage(Image & image) {
 	image.applyHorTransform();
 }
+wxString HorizontalEffect::describe() {
+	return wxT("HorizontalMirror");
+}
 
 
 void VerticalEffect::applyToImage(Image& image) {
 	image.applyVerTransform();
 }
+wxString VerticalEffect::describe() {
+	return wxT("VerticalMirror");
+}
 
 void LeftRotationEffect::applyToImage(Image& image) {
 	image.applyRotLeftTranform();
+}
+wxString LeftRotationEffect::describe() {
+	return wxT("LeftRotation");
 }
 
 void RightRotationEffect::applyToImage(Image& image) {
 	image.applyRotRightTranform();
 }
+wxString RightRotationEffect::describe() {
+	return wxT("RightRotation");
+}
+
 
 void GreyscaleEffect::applyToImage(Image& image) {
-	image.applyGreyTransform();
+	// Equivalently: image.applyGreyTransform();
+	cv::Mat new_mat;
+	cv::cvtColor(image.GetMatrix(), new_mat, cv::COLOR_BGR2GRAY);
+	image.SetMatrix(new_mat);
+}
+wxString GreyscaleEffect::describe() {
+	return wxT("Greyscale");
 }
 
 void InvertEffect::applyToImage(Image& image) {

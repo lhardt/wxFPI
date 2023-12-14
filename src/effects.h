@@ -11,23 +11,28 @@ public:
 
 
 class HorizontalEffect : public Effect {
-	public: void applyToImage(Image & image);
+public: void applyToImage(Image & image);
+	virtual wxString describe();
 };
 
 class VerticalEffect : public Effect {
-	public: void applyToImage(Image& image);
+public: void applyToImage(Image& image);
+	  virtual wxString describe();
 };
 
 class LeftRotationEffect : public Effect {
-	public: void applyToImage(Image& image);
+public: void applyToImage(Image& image);
+	  virtual wxString describe();
 };
 
 class RightRotationEffect : public Effect {
-	public: void applyToImage(Image& image);
+public: void applyToImage(Image& image);
+	  virtual wxString describe();
 };
 
 class GreyscaleEffect : public Effect {
 public: void applyToImage(Image& image);
+	  virtual wxString describe();
 };
 
 class EqualizeEffect : public Effect {
